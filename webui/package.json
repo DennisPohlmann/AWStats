@@ -1,6 +1,6 @@
 {
   "name": "awstats-ng",
-  "version": "9.0.0",
+  "version": "9.1.0",
   "private": true,
   "description": "Modern web UI for AWStats data files",
   "scripts": {
