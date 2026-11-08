@@ -1,3 +1,0 @@
-awstats=/usr/local/awstats/wwwroot/cgi-bin/awstats.pl
-awstats_cgi=http://127.0.0.1/awstats/awstats.pl
-alt_conf=/etc/awstats/awstats.model.conf
