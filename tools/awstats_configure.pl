@@ -6,7 +6,7 @@
 # - Add AWStats directives
 # - Restart web server
 # - Create AWStats config file
-# See COPYING.TXT file about AWStats GNU General Public License.
+# See LICENSE file about AWStats GNU General Public License.
 #-------------------------------------------------------
 require 5.005;
 

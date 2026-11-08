@@ -4,7 +4,7 @@
 # built from particular sources.
 # This tool is part of AWStats log analyzer but can be use
 # alone for any other log analyzer.
-# See COPYING.TXT file about AWStats GNU General Public License.
+# See LICENSE file about AWStats GNU General Public License.
 #-----------------------------------------------------------------------------
 
 use strict; no strict "refs";
@@ -332,7 +332,7 @@ if (scalar @ParamFile == 0) {
 	print " - It can also makes a fast reverse DNS lookup to replace\n";
 	print "   all IP addresses into host names in resulting log file.\n";
 	print "$PROG comes with ABSOLUTELY NO WARRANTY. It's a free software\n";
-	print "distributed with a GNU General Public License (See COPYING.txt file).\n";
+	print "distributed with a GNU General Public License (See LICENSE file).\n";
 	print "$PROG is part of AWStats but can be used alone as a log merger\n";
 	print "or resolver before using any other log analyzer.\n";
 	print "\n";

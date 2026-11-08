@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #------------------------------------------------------------------------------
 # Launch awstats with -staticlinks option to build all static pages.
-# See COPYING.TXT file about AWStats GNU General Public License.
+# See LICENSE file about AWStats GNU General Public License.
 #------------------------------------------------------------------------------
 
 #$|=1;

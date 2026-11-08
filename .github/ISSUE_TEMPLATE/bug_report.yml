@@ -1,0 +1,66 @@
+name: Bug report
+description: Something does not work as documented.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. **Security problems do not
+        belong here**: please report them privately as described in
+        [SECURITY.md](https://github.com/DennisPohlmann/AWStats/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "The release you use (e.g. from the container image tag)."
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Setup
+      placeholder: "e.g. container image, Apache 2.4 combined log, nginx, Firefox 140"
+    validations:
+      required: true
+  - type: dropdown
+    id: part
+    attributes:
+      label: Affected part
+      options:
+        - Web interface (webui)
+        - Log analyzer (awstats.pl)
+        - Container image
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and configuration
+      description: "Output of the container or of awstats.pl, the LogFormat you use, and a sample log line if parsing is affected."
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I removed passwords, tokens and other private data from the logs and configs above.
+          required: true

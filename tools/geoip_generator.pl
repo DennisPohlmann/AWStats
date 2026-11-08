@@ -3,7 +3,7 @@
 # Generates override files for the GEOIP databases for a given IP range
 # This tool is part of AWStats log analyzer but can be use
 # alone for any other log analyzer.
-# See COPYING.TXT file about AWStats GNU General Public License.
+# See LICENSE file about AWStats GNU General Public License.
 #-----------------------------------------------------------------------------
 
 use strict; no strict "refs";
