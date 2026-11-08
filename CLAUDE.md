@@ -4,12 +4,17 @@ Fork of eldy/awstats. Two parts:
 
 - `wwwroot/cgi-bin/awstats.pl` (Perl, upstream): parses web server logs and
   writes the monthly data files `awstatsMMYYYY[.config].txt` into `DirData`.
+- `cmd/awstats/` (Go): the replacement for the update part of `awstats.pl`.
+  Reads the same configs and logs and writes the same data files; the tests
+  compare its output with data files written by `awstats.pl`. Detection
+  tables are `cmd/awstats/lib.json` (a dump of `wwwroot/cgi-bin/lib/*.pm`).
 - `webui/` (Node.js): reads those data files and serves a JSON API and a
   React/ECharts interface. `webui/server/` has no npm dependencies; the
   interface is built with Vite into `webui/web/dist`. See `webui/README.md`.
 
 Build and check: `cd webui && npm ci && sh testdata/build.sh ../wwwroot/cgi-bin
-&& npm test && npm run build`. Container: `Dockerfile` in the root (image
+&& npm test && npm run build`, then in the root `go vet ./... && go test ./...`
+(the Go tests use the data files `build.sh` wrote with `awstats.pl`). Container: `Dockerfile` in the root (image
 `ghcr.io/dennispohlmann/awstats`), `docker-compose.yml` for the mounts.
 
 ## Rules
@@ -39,3 +44,8 @@ Build and check: `cd webui && npm ci && sh testdata/build.sh ../wwwroot/cgi-bin
 5. **No references to other projects** of the maintainer in this repository.
 6. Documentation and code comments in English; the interface text is German.
 7. Keep upstream copyright and license notices in the Perl files (GPL).
+8. **Commits are signed with Dennis' SSH key on his av-linux machine**
+   (standing rule). Never commit or push from a cloud session; prepare the
+   changes and let them be committed there.
+9. **No `Claude-Session:` line or session link in commit messages** (standing
+   rule).
