@@ -83,4 +83,19 @@ tr.click:hover td { background: var(--surface-2); }
 .error { color: var(--critical); }
 .note { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; color: var(--ink-2); }
 details summary { cursor: pointer; color: var(--ink-2); margin-top: 8px; }
-@media (max-width: 600px) { input[type=search] { min-width: 0; width: 100%; } .kpi .value { font-size: 22px; } }
+@media (max-width: 600px) {
+  input[type=search] { min-width: 0; width: 100%; }
+  .kpi .value { font-size: 22px; }
+  .kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kpi { padding: 10px 12px; }
+  .bar { gap: 8px; padding: 8px 12px; }
+  .bar .lbl, .spacer { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } /* visually hidden, still labels the selects */
+  #site { flex: 1 1 30%; min-width: 0; }
+  #period { flex: 1 1 100%; order: 5; min-width: 0; }
+  .brand { margin-right: 0; }
+  .tabs { padding: 0 8px; scrollbar-width: none; }
+  main { padding: 12px; gap: 12px; }
+  .card { padding: 12px; }
+  .chart { height: 260px; }
+  .chart.tall { height: 300px; }
+}

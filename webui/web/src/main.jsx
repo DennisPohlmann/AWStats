@@ -46,17 +46,31 @@ function periods(months) {
   ];
 }
 
+// Site, period and tab live in the URL, so a view can be bookmarked or shared.
+const url = new URLSearchParams(location.search);
+function useUrlState(key, initial) {
+  const [v, setV] = useState(url.get(key) || initial);
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    if (v) q.set(key, v); else q.delete(key);
+    history.replaceState(null, '', `${location.pathname}${q.size ? '?' + q : ''}${location.hash}`);
+  }, [key, v]);
+  return [v, setV];
+}
+
 function App() {
   const [theme, setTheme] = useTheme();
   const c = useMemo(css, [theme, document.documentElement.dataset.theme, matchMedia('(prefers-color-scheme: dark)').matches]);
   const sites = useApi('/api/sites');
   const siteNames = Object.keys(sites.data || {});
-  const [site, setSite] = useState(store.get('site') || '');
+  const [site, setSite] = useUrlState('site', store.get('site') || '');
   const activeSite = siteNames.includes(site) ? site : siteNames[0];
   const ps = periods(sites.data?.[activeSite]);
-  const [period, setPeriod] = useState('');
-  const activePeriod = ps.find(p => p.id === period) ? period : (ps[1] || ps[0])?.id; // default: last 3 months
-  const [tab, setTab] = useState(TABS[0]);
+  const [period, setPeriod] = useUrlState('period', '');
+  // After a site switch keep the same kind of period (e.g. "last 3 months") if the exact one does not exist there.
+  const activePeriod = (ps.find(p => p.id === period) || ps.find(p => p.id.split(':')[0] === period.split(':')[0] && !/^[ym]$/.test(period.split(':')[0])) || ps[1] || ps[0])?.id;
+  const [tabParam, setTab] = useUrlState('tab', TABS[0]);
+  const tab = TABS.includes(tabParam) ? tabParam : TABS[0];
   const [from, to] = (activePeriod || ':-').split(':')[1].split('-');
   const summary = useApi(activeSite && activePeriod ? `/api/${encodeURIComponent(activeSite)}/summary?from=${from}&to=${to}` : null);
 
@@ -68,11 +82,11 @@ function App() {
       <header className="top">
         <div className="bar">
           <div className="brand">AWStats <span>NG</span></div>
-          <label className="muted" htmlFor="site">Site</label>
+          <label className="muted lbl" htmlFor="site">Site</label>
           <select id="site" value={activeSite || ''} onChange={e => { setSite(e.target.value); store.set('site', e.target.value); }}>
             {siteNames.map(s => <option key={s}>{s}</option>)}
           </select>
-          <label className="muted" htmlFor="period">Zeitraum</label>
+          <label className="muted lbl" htmlFor="period">Zeitraum</label>
           <select id="period" value={activePeriod || ''} onChange={e => setPeriod(e.target.value)}>
             {ps.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
           </select>
@@ -82,7 +96,7 @@ function App() {
           </select>
         </div>
         <nav className="tabs" role="tablist">
-          {TABS.map(t => <button key={t} role="tab" aria-selected={t === tab} onClick={() => setTab(t)}>{t}</button>)}
+          {TABS.map(t => <button key={t} role="tab" aria-selected={t === tab} onClick={e => { setTab(t); e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'center' }); }}>{t}</button>)}
         </nav>
       </header>
       <main className={summary.loading ? 'loading' : ''}>
