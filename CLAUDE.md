@@ -14,8 +14,15 @@ Fork of eldy/awstats. Two parts:
 
 Build and check: `cd webui && npm ci && sh testdata/build.sh ../wwwroot/cgi-bin
 && npm test && npm run build`, then in the root `go vet ./... && go test ./...`
-(the Go tests use the data files `build.sh` wrote with `awstats.pl`). Container: `Dockerfile` in the root (image
-`ghcr.io/dennispohlmann/awstats`), `docker-compose.yml` for the mounts.
+(the Go tests use the data files `build.sh` wrote with `awstats.pl`).
+
+Ways to run (all four must keep working): updater and web interface each
+as a container or directly on the host. `Dockerfile` builds two images:
+target `web` (default, `ghcr.io/dennispohlmann/awstats`) and target
+`updater` (`ghcr.io/dennispohlmann/awstats-updater`, runs `awstats -all
+-every=1h`); `docker-compose.yml` runs both. Without containers: the release
+files `awstats-updater-<v>-linux-<arch>.tar.gz` (binary, systemd timer in
+`contrib/systemd/`) and `awstats-web-<v>.tar.gz` (built interface).
 
 ## Rules
 
