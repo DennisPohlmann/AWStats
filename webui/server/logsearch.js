@@ -30,7 +30,7 @@ function logFiles(file) {
 }
 
 // Apache/nginx "combined" (AWStats LogFormat=1). Other formats are returned as raw lines.
-const COMBINED = /^(\S+) \S+ (\S+) \[([^\]]+)\] "(\S+) (\S+)[^"]*" (\d{3}) (\S+)(?: "([^"]*)" "([^"]*)")?/;
+const COMBINED = /^(\S+) \S+ (\S+) \[([^\]]+)\] "(\S+) ([^\s"]+)(?: [^"]*)?" (\d{3}) (\S+)(?: "([^"]*)" "([^"]*)")?/;
 
 async function searchIp(files, ip, limit = 2000) {
   const esc = ip.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

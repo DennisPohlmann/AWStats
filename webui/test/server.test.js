@@ -60,3 +60,17 @@ test('unreadable or corrupt rotated logs are skipped, not fatal', async () => {
   assert.strictEqual(r.total, 1);
   assert.strictEqual(r.skipped.length, 2);
 });
+
+test('a hostile request line does not stall the IP search', async () => {
+  const fs = require('fs'), os = require('os');
+  const { searchIp } = require('../server/logsearch.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'awng-'));
+  // unterminated request line: the old pattern backtracked quadratically on it (about 2 s at 40k chars)
+  fs.writeFileSync(path.join(dir, 'a.log'), `1.2.3.4 - - [01/Nov/2026:00:00:00 +0000] "GET /${'a'.repeat(40000)}\n` +
+    '1.2.3.4 - - [01/Nov/2026:00:00:01 +0000] "GET /x HTTP/1.1" 404 - "-" "y"\n');
+  const t = Date.now();
+  const r = await searchIp([path.join(dir, 'a.log')], '1.2.3.4');
+  assert.ok(Date.now() - t < 200, `took ${Date.now() - t} ms`);
+  assert.strictEqual(r.hits[0].raw.length > 40000, true);
+  assert.deepStrictEqual([r.hits[1].url, r.hits[1].status], ['/x', 404]);
+});
