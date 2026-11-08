@@ -73,6 +73,7 @@ Details: [webui/README.md](webui/README.md).
   (Debian/Ubuntu: `apt install libjson-xs-perl libtry-tiny-perl`), and read
   access to the web server logs. For real-time statistics as a CGI, the web
   server must be able to run Perl scripts.
+- **Go updater:** Go 1.24 or newer to build it (`cmd/awstats`).
 - **Web interface:** Docker, or Node.js 20 or newer.
 
 ## Quick start
@@ -86,6 +87,16 @@ Details: [webui/README.md](webui/README.md).
    ```sh
    perl wwwroot/cgi-bin/awstats.pl -config=example.com -update
    ```
+
+   Or with the Go updater (same configs, same data files, no Perl):
+
+   ```sh
+   go build -o awstats ./cmd/awstats
+   ./awstats -config=example.com -update
+   ```
+
+   Not supported yet by the Go updater: `LogFormat` 2, 3 and 5, mail and ftp
+   logs (`LogType` M and F), plugins and `ExtraSection`s.
 
 3. Start the web interface on the data directory (`DirData`):
 
