@@ -11,10 +11,12 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -36,6 +38,8 @@ func main() {
 		logFile    = flag.String("logfile", "", "log file to read instead of LogFile from the config")
 		_          = flag.Bool("update", true, "update the data files (the only action; accepted for compatibility)")
 		showVer    = flag.Bool("version", false, "print the version")
+		all        = flag.Bool("all", false, "update every awstats.<name>.conf in -configdir (default /etc/awstats)")
+		every      = flag.Duration("every", 0, "repeat the update at this interval, e.g. -every=1h (default: run once)")
 	)
 	flag.CommandLine.Init(os.Args[0], flag.ContinueOnError)
 	// awstats.pl accepts -LogFile=... and -configdir=...; accept any case for the flag names.
@@ -54,10 +58,72 @@ func main() {
 		fmt.Println("awstats", version)
 		return
 	}
-	if err := run(*configName, *configDir, *logFile, time.Now(), os.Stdout); err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
+	if *all && (*configName != "" || *logFile != "") {
+		fmt.Fprintln(os.Stderr, "Error: -all can't be used with -config or -logfile")
+		os.Exit(2)
 	}
+	if *all && *configDir == "" {
+		*configDir = "/etc/awstats"
+	}
+	update := func() bool {
+		names := []string{*configName}
+		if *all {
+			var err error
+			if names, err = allConfigs(*configDir); err != nil { // read again each round: new sites are picked up
+				fmt.Fprintln(os.Stderr, "Error:", err)
+				return false
+			}
+		}
+		ok := true
+		for _, n := range names {
+			if *all {
+				fmt.Printf("Update for config %q\n", n)
+			}
+			if err := run(n, *configDir, *logFile, time.Now(), os.Stdout); err != nil {
+				fmt.Fprintln(os.Stderr, "Error:", err)
+				ok = false
+			}
+		}
+		return ok
+	}
+	if *every <= 0 {
+		if !update() {
+			os.Exit(1)
+		}
+		return
+	}
+	// Long-running mode for a container: an error is logged and retried in the next round.
+	// SIGTERM (docker stop) ends it with exit code 0: during an update it finishes that update,
+	// and a kill after the stop timeout is safe too, because data files are written to a
+	// temporary file and renamed.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, os.Interrupt)
+	for {
+		update()
+		select {
+		case <-stop:
+			return
+		case <-time.After(*every):
+		}
+	}
+}
+
+// allConfigs returns the names of all awstats.<name>.conf files in dir.
+func allConfigs(dir string) ([]string, error) {
+	files, err := filepath.Glob(filepath.Join(dir, "awstats.*.conf"))
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, f := range files {
+		if n := strings.TrimSuffix(strings.TrimPrefix(filepath.Base(f), "awstats."), ".conf"); n != "model" {
+			names = append(names, n)
+		}
+	}
+	if len(names) == 0 {
+		return nil, fmt.Errorf("no awstats.<name>.conf in %s", dir)
+	}
+	return names, nil
 }
 
 func run(name, dir, logOverride string, now time.Time, out io.Writer) error {

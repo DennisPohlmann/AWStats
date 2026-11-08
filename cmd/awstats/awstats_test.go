@@ -231,3 +231,19 @@ func TestHelpers(t *testing.T) {
 		t.Errorf("substituteTags = %q", got)
 	}
 }
+
+func TestAllConfigs(t *testing.T) {
+	dir := t.TempDir()
+	for _, f := range []string{"awstats.b.example.com.conf", "awstats.a.conf", "awstats.model.conf", "other.conf"} {
+		if err := os.WriteFile(filepath.Join(dir, f), nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := allConfigs(dir)
+	if err != nil || strings.Join(got, ",") != "a,b.example.com" {
+		t.Errorf("allConfigs = %v, %v", got, err)
+	}
+	if _, err := allConfigs(t.TempDir()); err == nil {
+		t.Error("allConfigs of an empty directory: no error")
+	}
+}
