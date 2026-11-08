@@ -23,7 +23,7 @@ details of the problem.
 
 Please include:
 
-- the affected version and how it is installed (container image, CGI);
+- the affected version and how it is installed (container image, built from source);
 - what an attacker can do, and what they need for it (for example network
   access to the web interface, a crafted log line, a crafted request);
 - the steps or a proof of concept to reproduce it;
@@ -47,11 +47,11 @@ details yourself.
 
 In scope is the code in this repository, in particular:
 
-- `awstats.pl` and its plugins, including the parsing of log lines
+- the updater in `cmd/awstats`, including the parsing of log lines
 - the web interface in `webui/` and its JSON API
 - the container image built from this repository
 
-Vulnerabilities in Perl, Node.js or the web server belong to those projects;
+Vulnerabilities in Go, Node.js or the web server belong to those projects;
 please report them there.
 
 The web interface shows IP addresses and single requests. Running it without

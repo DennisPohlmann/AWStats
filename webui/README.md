@@ -1,11 +1,11 @@
 # AWStats web interface
 
-A modern web interface for AWStats. Log analysis stays with `awstats.pl`. The
-interface reads its data files (`awstatsMMYYYY.<site>.txt`) directly, so
+A modern web interface for AWStats. The updater (`cmd/awstats`, or
+`awstats.pl` as before) writes the data files; the interface reads them (`awstatsMMYYYY.<site>.txt`) directly, so
 existing history works without any migration and no extra database is needed.
 
 ```
-web server logs ──► awstats.pl -update (cron, as before) ──► data files ──► Node.js server (API + web UI)
+web server logs ──► awstats -config=<site> (cron)        ──► data files ──► Node.js server (API + web UI)
                                                                   ▲
                     raw logs (also .gz) ── only for the IP detail search ┘
 ```
@@ -23,13 +23,13 @@ web server logs ──► awstats.pl -update (cron, as before) ──► data fi
 - Several sites: every config with data files shows up in the site selector.
 
 Labels (browsers, operating systems, robots, search engines, countries, HTTP
-codes) come from the AWStats tables in `wwwroot/cgi-bin/lib/*.pm`, exported to
-`server/labels.json` with `tools/export-labels.pl`.
+codes) come from the AWStats tables in `cmd/awstats/lib.json`, exported to
+`server/labels.json` with `node tools/export-labels.js`.
 
 ## Requirements
 
 - **Node.js 20 or newer.** The server itself has no npm dependencies; npm is only needed to build the interface.
-- **AWStats** to create the data files, as before. `awstats.pl` 8.x needs the Perl modules `JSON::XS` and `Try::Tiny` (Debian/Ubuntu: `apt install libjson-xs-perl libtry-tiny-perl`).
+- **The updater** (`cmd/awstats`, also in the container image) or `awstats.pl` to create the data files.
 
 ## Running it in a container
 
@@ -141,7 +141,7 @@ interface.
 
 ```sh
 cd webui
-sh testdata/build.sh ../wwwroot/cgi-bin   # test logs (Apache + nginx) and data files made with awstats.pl
+sh testdata/build.sh                      # test logs (Apache + nginx) and data files made with the Go updater (needs Go)
 npm test                                  # reader, API, IP search and forecast against those files
 npm start & npm run dev                   # Vite dev server with a proxy to the API
 ```

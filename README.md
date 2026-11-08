@@ -1,65 +1,38 @@
 # AWStats - Advanced Web Statistics
 
-AWStats is a log file analyzer for web servers. `awstats.pl` reads the access
-logs of Apache, nginx, IIS and most other web, proxy, streaming, FTP and mail
-servers and stores the results in monthly data files. A web interface in
-[`webui/`](webui/README.md) shows those data files with charts, IP search and
-forecasts, for several sites and on the phone.
+AWStats is a log file analyzer for web servers. The updater `awstats`
+(written in Go, in [`cmd/awstats`](cmd/awstats)) reads the access logs of
+Apache, nginx, IIS and other web servers and stores the results in monthly
+data files, in the same format as the original `awstats.pl`. A web interface
+in [`webui/`](webui/README.md) shows those data files with charts, IP search
+and forecasts, for several sites and on the phone.
 
 ## Features
 
 ### Log analysis
 
-`awstats.pl` analyzes the logs and shows:
-- Number of VISITS and UNIQUE VISITORS
-- Visits duration and last visits
-- Authenticated users, and last authenticated visits
-- Days of week and rush hours (pages, hits, KB for each day and hour)
-- Domains/countries of hosts visitors (pages, hits, KB)
-- Hosts list, last visits and unresolved IP addresses list
-- Most viewed, entry and exit pages
-- File types
-- Web compression statistics (for mod_gzip or mod_deflate)
-- Browsers used (pages, hits, kb for each browser)
-- OS used (pages, hits, KB for each OS)
-- Robot visits
-- Worm attacks
-- Download and continuation detection
-- Search engines, keyphrases and keywords used to find your site
-- HTTP errors (Page not found with last referer, etc,)
-- Screen size report
-- Number of times your site is "added to favourites bookmarks"
-- Ratio of Browsers that support: Java, Flash, RealG2 reader, Quicktime reader, WMA reader, PDF reader
-- Cluster report for load balanced servers ratio
-- Other personalized reports...
+- Visits, unique visitors, visit duration and last visits
+- Authenticated users
+- Days of week and hours (pages, hits, bytes)
+- Domains/countries of hosts, hosts list
+- Most viewed, entry and exit pages, file types, downloads
+- Browsers, operating systems, screen sizes
+- Robots and worms
+- Search engines, keyphrases and keywords, referring sites
+- HTTP errors with the last referrer
+- Cluster report for load balanced servers
+- Incremental updates: each run continues after the last line of the last run
+- Configs of `awstats.pl` keep working (`awstats.<site>.conf`, `Include`, `__ENV__`)
+- Logs as plain files, `.gz` files or the output of a command (`LogFile="cmd |"`)
+- Reverse DNS lookup (`DNSLookup=1`)
 
-It also supports:
-- Can analyze all log formats
-- Works from command line and from a browser as a CGI (with dynamic filters capabilities for some charts)
-- Update of statistics can be made on demand from the web interface and not only from your scheduler
-- Unlimited log file size, support split log files (load balancing system)
-- Support 'nearly sorted' log files even for entry and exit pages
-- Reverse DNS lookup before or during analysis, supports DNS cache files
-- Country detection from IP location or domain name
-- WhoIS links
-- A lot of options/filters and plugins can be used
-- Multi-named web sites supported (virtual servers)
-- Cross Site Scripting Attacks protection
-- Several languages
-- No need of rare perl libraries
-- Dynamic reports as CGI output
-- Static reports in one or framed HTML or XHTML pages
-- Experimental PDF export
-- Look and colors can match your site design (CSS)
-- Help and tooltips on HTML reported pages
-- Easy to use (Just one configuration file to edit)
-- Analysis database can be stored in XML format (for XSLT processing, ...)
-- Free (GNU GPL) with sources (perl scripts)
-- Available on all platforms
+Not supported (any more): `LogFormat` 2, 3 and 5, mail and ftp logs
+(`LogType` M and F), plugins, `ExtraSection`s, and the HTML/CGI reports of
+`awstats.pl` (the web interface replaces them).
 
 ### Web interface
 
-- Reads the data files of `awstats.pl` directly: all existing history works, no extra database.
+- Reads the data files directly (also those of `awstats.pl`): all existing history works, no extra database.
 - Overview, visitors and IPs, pages, origin, technology, robots, errors and a forecast.
 - IP search across the raw logs, rotated `.gz` files included.
 - Several sites, light and dark mode, phone layout.
@@ -69,8 +42,6 @@ Details: [webui/README.md](webui/README.md).
 
 ## Requirements
 
-- **awstats.pl** (still included): Perl with the modules `Encode`, `JSON::XS`
-  and `Try::Tiny`. Not needed for the updater below.
 - **Updater:** the `awstats` binary from the release (Linux amd64/arm64), or
   Go 1.24 or newer to build it, or the container image `awstats-updater`.
   It needs read access to the web server logs.
@@ -85,11 +56,9 @@ AWStats has two parts that share one data directory (`DirData`):
 
 Each part runs either as a container or directly on the host, in any
 combination. First create a config for each site from
-[`wwwroot/cgi-bin/awstats.model.conf`](wwwroot/cgi-bin/awstats.model.conf), for example
+[`conf/awstats.model.conf`](conf/awstats.model.conf), for example
 `/etc/awstats/awstats.example.com.conf`, and set `LogFile`, `LogFormat`,
-`SiteDomain` and `DirData`. The updater supports `LogFormat` 1, 4 and
-personalized formats, not 2, 3 and 5, and no mail or ftp logs (`LogType` M
-and F), plugins or `ExtraSection`s.
+`SiteDomain` and `DirData` (limits of the updater: see above).
 
 ### Both in containers
 
@@ -134,7 +103,7 @@ a reverse proxy with a login, because it shows IP addresses; see
 
 ## Documentation
 
-- [docs/index.html](docs/index.html): setup, configuration, plugins, FAQ for `awstats.pl`
+- [conf/awstats.model.conf](conf/awstats.model.conf): all config options, with comments
 - [webui/README.md](webui/README.md): the web interface, its settings and the container
 - [CHANGELOG.md](CHANGELOG.md): changes per release
 - [CONTRIBUTING.md](CONTRIBUTING.md): development, commits and releases
@@ -142,29 +111,17 @@ a reverse proxy with a login, because it shows IP addresses; see
 
 ## Files
 
-	README.md                           This file
-	LICENSE                             GNU General Public Licence
-	CHANGELOG.md                        Changes per release
-	docs/*                              AWStats documentation (setup/usage...)
-	wwwroot/cgi-bin/awstats.pl          THE MAIN AWSTATS PROGRAM (CLI/CGI)
-	wwwroot/cgi-bin/awredir.pl          A tool to track exit clicks
-	wwwroot/cgi-bin/awstats.model.conf  An model configuration file
-	wwwroot/cgi-bin/lang                Directory with languages files
-	wwwroot/cgi-bin/lib                 Directory with awstats reference info
-	wwwroot/cgi-bin/plugins             Directory with optional plugins
-	wwwroot/icon/browser                Directory with browsers icons
-	wwwroot/icon/clock                  Directory with clock icons
-	wwwroot/icon/cpu                    Directory with cpu icons
-	wwwroot/icon/flags                  Directory with country flag icons
-	wwwroot/icon/os                     Directory with OS icons
-	wwwroot/icon/other                  Directory with all others icons
-	wwwroot/classes                     Java applet for graphapplet plugin
-	wwwroot/css                         Samples of CSS files
-	wwwroot/js                          Javascript sources for "Misc" feature
-	tools/*                             Other provided tools
-	tools/xslt/awstats.xsd              AWStats XML database schema descriptor
-	tools/xslt/*                        Demo to manipulate AWStats XML database
-	webui/                              Web interface for the data files (Node.js)
+	README.md                 This file
+	LICENSE                   GNU General Public Licence
+	CHANGELOG.md              Changes per release
+	cmd/awstats               The updater (Go): logs -> data files
+	cmd/awstats/lib.json      Detection tables (browsers, OS, robots, search engines...)
+	conf/awstats.model.conf   A model configuration file
+	webui                     The web interface (Node.js)
+	docs/awstats_changelog.txt Changes up to version 8.0 (awstats.pl)
+	contrib/systemd           systemd service and timer for the updater
+	Dockerfile                Container images: web interface and updater
+	docker-compose.yml        Both containers with their mounts
 
 ## Credits
 

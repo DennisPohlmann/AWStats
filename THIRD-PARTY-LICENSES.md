@@ -6,11 +6,13 @@ compatible with GPL-3.0-or-later.
 
 ## AWStats
 
-`awstats.pl`, its plugins, tools and the detection tables in
-`wwwroot/cgi-bin/lib/` were written by Laurent Destailleur and contributors
-of [eldy/awstats](https://github.com/eldy/awstats), GPL-3.0-or-later. The web
-interface reads labels from those tables (`webui/server/labels.json`, made
-by `webui/tools/export-labels.pl`).
+The detection tables in `cmd/awstats/lib.json`, the model config
+`conf/awstats.model.conf`, the change history in `docs/awstats_changelog.txt`
+and the data file format come from `awstats.pl`, written by Laurent Destailleur and
+contributors of [eldy/awstats](https://github.com/eldy/awstats),
+GPL-3.0-or-later. The updater in `cmd/awstats` is a port of the update part
+of `awstats.pl`. The web interface reads labels from those tables
+(`webui/server/labels.json`, made by `webui/tools/export-labels.js`).
 
 ## Browser bundle of the web interface
 

@@ -29,7 +29,7 @@ body:
       label: Affected part
       options:
         - Web interface (webui)
-        - Log analyzer (awstats.pl)
+        - Updater (cmd/awstats, log analysis)
         - Container image
         - Other
     validations:
@@ -53,7 +53,7 @@ body:
     id: logs
     attributes:
       label: Logs and configuration
-      description: "Output of the container or of awstats.pl, the LogFormat you use, and a sample log line if parsing is affected."
+      description: "Output of the container or of the updater, the LogFormat you use, and a sample log line if parsing is affected."
       render: text
   - type: checkboxes
     id: checks

@@ -29,17 +29,21 @@ we can agree on the approach before you spend time on it.
 
 ## Development
 
-The log analyzer is the Perl script `wwwroot/cgi-bin/awstats.pl`; the web
+The updater is the Go program in [`cmd/awstats`](cmd/awstats); the web
 interface is the Node.js application in [`webui/`](webui/README.md). Before
-you propose a change to the web interface, run:
+you propose a change, run:
 
 ```bash
 cd webui
 npm ci
-sh testdata/build.sh ../wwwroot/cgi-bin   # test logs and data files, needs Perl
+sh testdata/build.sh   # test logs and data files, needs Go
 npm test
 npm run build
+cd .. && go vet ./... && go test ./...
 ```
+
+The Go tests compare the data files of the updater with data files that the
+original `awstats.pl` wrote from the same logs (`cmd/awstats/testdata/golden`).
 
 Please also:
 
@@ -47,8 +51,8 @@ Please also:
 - Update the documentation in the same change when behavior, configuration
   or commands change.
 - Write documentation and code comments in English.
-- Keep the data file format of `awstats.pl` compatible: existing data files
-  must stay readable.
+- Keep the data file format of `awstats.pl`: existing data files must stay
+  readable, and the updater must keep writing the same data files.
 
 ## Commit messages
 
