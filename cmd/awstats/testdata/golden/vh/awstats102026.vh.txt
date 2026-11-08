@@ -1,0 +1,302 @@
+AWSTATS DATA FILE 8.0 (build 20240604)
+# If you remove this file, all statistics for date 202610 will be lost/reset.
+# Last config file used to build this data file was testdata/conf/awstats.vh.conf.
+
+# Position (offset in bytes) in this file for beginning of each section for
+# direct I/O access. If you made changes somewhere in this file, you should
+# also remove completely the MAP section (AWStats will rewrite it at next
+# update).
+BEGIN_MAP 31
+POS_GENERAL 2255                
+POS_TIME 2934                
+POS_VISITOR 3608                
+POS_DAY 3819                
+POS_DOMAIN 3984                
+POS_LOGIN 4221                
+POS_ROBOT 4406                
+POS_WORMS 4663                
+POS_EMAILSENDER 4794                
+POS_EMAILRECEIVER 4937                
+POS_SESSION 5013                
+POS_FILESIZE 6976                
+POS_REQUESTTIME 7110                
+POS_SIDER 5159                
+POS_FILETYPES 5434                
+POS_DOWNLOADS 5530                
+POS_OS 5607                
+POS_BROWSER 5727                
+POS_SCREENSIZE 5841                
+POS_UNKNOWNREFERER 5915                
+POS_UNKNOWNREFERERBROWSER 6002                
+POS_ORIGIN 6084                
+POS_SEREFERRALS 6214                
+POS_PAGEREFS 6433                
+POS_SEARCHWORDS 6581                
+POS_KEYWORDS 6771                
+POS_MISC 2598                
+POS_ERRORS 6874                
+POS_CLUSTER 4077                
+POS_SIDER_404 7196                
+POS_SIDER_400 7278                
+POS_SIDER_500 7407                
+POS_SIDER_403 7538                
+END_MAP
+
+# LastLine    = Date of last record processed - Last record line number in last log - Last record offset in last log - Last record signature value
+# FirstTime   = Date of first visit for history file
+# LastTime    = Date of last visit for history file
+# LastUpdate  = Date of last update - Nb of parsed records - Nb of parsed old records - Nb of parsed new records - Nb of parsed corrupted - Nb of parsed dropped
+# TotalVisits = Number of visits
+# TotalUnique = Number of unique visitors
+# MonthHostsKnown   = Number of hosts known
+# MonthHostsUnKnown = Number of hosts unknown
+BEGIN_GENERAL 8
+LastLine 20261101000002 31 5549 10290234596509
+FirstTime 20261001100000
+LastTime 20261002090000
+LastUpdate 20261108150520 31 0 18 2 10
+TotalVisits 7                   
+TotalUnique 4                   
+MonthHostsKnown 1                   
+MonthHostsUnknown 3                   
+END_GENERAL
+
+# Misc ID - Pages - Hits - Bandwidth
+BEGIN_MISC 10
+QuickTimeSupport 0 0 0
+JavascriptDisabled 0 0 0
+AddToFavourites 0 1 0
+TotalMisc 0 0 0
+JavaEnabled 0 0 0
+FlashSupport 0 0 0
+DirectorSupport 0 0 0
+PDFSupport 0 0 0
+WindowsMediaPlayerSupport 0 0 0
+RealPlayerSupport 0 0 0
+END_MISC
+
+# Hour - Pages - Hits - Bandwidth - Not viewed Pages - Not viewed Hits - Not viewed Bandwidth
+BEGIN_TIME 24
+0 0 0 0 0 0 0
+1 0 0 0 0 0 0
+2 0 0 0 0 0 0
+3 0 0 0 0 0 0
+4 0 0 0 0 0 0
+5 0 0 0 0 0 0
+6 0 0 0 0 0 0
+7 0 0 0 0 0 0
+8 0 0 0 0 0 0
+9 1 1 1000 0 0 0
+10 1 1 1000 1 5 1340
+11 1 2 92000 0 0 0
+12 2 2 3000 5 5 410
+13 1 1 1000 0 0 0
+14 0 0 0 0 0 0
+15 0 0 0 0 0 0
+16 1 1 1000 0 0 0
+17 0 0 0 0 0 0
+18 0 0 0 0 0 0
+19 0 0 0 0 0 0
+20 0 0 0 0 0 0
+21 0 0 0 0 0 0
+22 0 0 0 0 0 0
+23 0 0 0 0 0 0
+END_TIME
+
+# Host - Pages - Hits - Bandwidth - Last visit date - [Start date of last visit] - [Last page of last visit]
+# [Start date of last visit] and [Last page of last visit] are saved only if session is not finished
+# The 10 first Hits must be first (order not required for others)
+BEGIN_VISITOR 4
+1.2.3.4 4 4 4000 20261002090000
+2001:db8::1 1 2 92000 20261001110000
+host.example.net 1 1 3000 20261001120000
+9.9.9.9 1 1 0 20261001121004
+END_VISITOR
+
+# Date - Pages - Hits - Bandwidth - Visits
+BEGIN_DAY 2
+20261001 6 7 98000 6
+20261002 1 1 1000 1
+END_DAY
+
+# Domain - Pages - Hits - Bandwidth
+# The 10 first Pages must be first (order not required for others)
+BEGIN_DOMAIN 2
+ip 6 7 96000
+net 1 1 3000
+END_DOMAIN
+
+# Cluster ID - Pages - Hits - Bandwidth
+BEGIN_CLUSTER 0
+END_CLUSTER
+
+# Login - Pages - Hits - Bandwidth - Last visit
+# The 10 first Pages must be first (order not required for others)
+BEGIN_LOGIN 1
+alice 1 1 3000 20261001120000
+END_LOGIN
+
+# Robot ID - Hits - Bandwidth - Last visit - Hits on robots.txt
+# The 10 first Hits must be first (order not required for others)
+BEGIN_ROBOT 4
+Wget/ 1 100 20261001121007 0
+unknown 1 120 20261001100101 1
+curl 1 120 20261001100100 1
+no_user_agent 1 800 20261001100103 0
+END_ROBOT
+
+# Worm ID - Hits - Bandwidth - Last visit
+# The 5 first Hits must be first (order not required for others)
+BEGIN_WORMS 0
+END_WORMS
+
+# EMail - Hits - Bandwidth - Last visit
+# The 20 first Hits must be first (order not required for others)
+BEGIN_EMAILSENDER 0
+END_EMAILSENDER
+
+# EMail - Hits - Bandwidth - Last visit
+# The 20 first hits must be first (order not required for others)
+BEGIN_EMAILRECEIVER 0
+END_EMAILRECEIVER
+
+# Session range - Number of visits
+BEGIN_SESSION 1
+0s-30s 7
+END_SESSION
+
+# URL - Pages - Bandwidth - Entry - Exit
+# The 10 first Pages must be first (order not required for others)
+BEGIN_SIDER 7
+/next-day.html 1 1000 1 1
+/c.html 1 0 1 1
+/ 1 1000 1 1
+/private/ 1 3000 1 1
+/later.html 1 1000 1 1
+/third.html 1 1000 1 1
+/docs/~user/a.html?x=1 1 2000 1 1
+END_SIDER
+
+# Files type - Hits - Bandwidth - Bandwidth without compression - Bandwidth after compression
+BEGIN_FILETYPES 2
+html 7 9000 0 0
+zip 1 90000 0 0
+END_FILETYPES
+
+# Downloads - Hits - Bandwidth
+BEGIN_DOWNLOADS 1
+/download/file.zip 1 0 90000
+END_DOWNLOADS
+
+# OS ID - Hits
+BEGIN_OS ID - Hits - Pages 5
+win10 3 3
+win7 1 1
+linux 1 1
+macosx 2 1
+ios_iphone 1 1
+END_OS
+
+# Browser ID - Hits - Pages
+BEGIN_BROWSER 4
+chrome130.0.0.0 3 3
+firefox131.0 1 1
+msie8.0 1 1
+safari17.5 3 2
+END_BROWSER
+
+# Screen size - Hits
+BEGIN_SCREENSIZE 0
+END_SCREENSIZE
+
+# Unknown referer OS - Last visit date
+BEGIN_UNKNOWNREFERER 0
+END_UNKNOWNREFERER
+
+# Unknown referer Browser - Last visit date
+BEGIN_UNKNOWNREFERERBROWSER 0
+END_UNKNOWNREFERERBROWSER
+
+# Origin - Pages - Hits 
+BEGIN_ORIGIN 6
+From0 3 4
+From1 0 0
+From2 4 4
+From3 0 0
+From4 0 0
+From5 0 0
+END_ORIGIN
+
+# Search engine referers ID - Pages - Hits
+BEGIN_SEREFERRALS 4
+www_bing_com 1 1
+www_google_de 1 1
+www_google_com 1 1
+search_yahoo_com 1 1
+END_SEREFERRALS
+
+# External page referers - Pages - Hits
+# The 10 first Pages must be first (order not required for others)
+BEGIN_PAGEREFS 0
+END_PAGEREFS
+
+# Search keyphrases - Number of search
+# The 10 first number of search must be first (order not required for others)
+BEGIN_SEARCHWORDS 3
+hello+world 1
+c+html 1
+private+area 1
+END_SEARCHWORDS
+
+# Search keywords - Number of search
+# The 10 first number of search must be first (order not required for others)
+BEGIN_KEYWORDS 6
+private 1
+hello 1
+area 1
+world 1
+c 1
+html 1
+END_KEYWORDS
+
+# Errors - Hits - Bandwidth
+BEGIN_ERRORS 4
+403 1 100
+400 1 100
+500 1 100
+207 1 10
+END_ERRORS
+
+# Payload Range - Payload Frequency
+BEGIN_FILESIZE 7
+500-1K 5
+100-500 4
+44-100 4
+2K-5K 1
+0-44 2
+5K+ 1
+1K-2K 1
+END_FILESIZE
+
+# Request Time Range - Request Time Frequency
+BEGIN_REQUESTTIME 0
+END_REQUESTTIME
+
+# URL with 404 errors - Hits - Last URL referrer
+BEGIN_SIDER_404 0
+END_SIDER_404
+
+# URL with 400 errors - Hits - Last URL referrer
+BEGIN_SIDER_400 1
+/b.html 1 https://duckduckgo.com/?q=awstats+go
+END_SIDER_400
+
+# URL with 500 errors - Hits - Last URL referrer
+BEGIN_SIDER_500 1
+/d.html 1 http://some.blog.example.org/post?id=7
+END_SIDER_500
+
+# URL with 403 errors - Hits - Last URL referrer
+BEGIN_SIDER_403 1
+/a.html 1 android-app://com.google.android.gm/
+END_SIDER_403
