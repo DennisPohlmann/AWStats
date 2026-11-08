@@ -70,6 +70,7 @@ AWSTATS_DATA_DIR=/var/lib/awstats AWSTATS_CONF_DIR=/etc/awstats npm start
 | `AWSTATS_CONF_DIR` | `/etc/awstats` | Directory with `awstats.<site>.conf`; `LogFile` is read from there for the IP search. |
 | `AWSTATS_LOG_FILES` | – | Optional: comma-separated log files for the IP search, when `LogFile` is a pipe or uses `%YYYY` tags. |
 | `PORT` / `HOST` | `3000` / `127.0.0.1` | Listen address. |
+| `AWSTATS_ALLOWED_HOSTS` | – | Comma-separated host names the API answers to, besides `localhost` and IP addresses, e.g. `stats.example.com`. Other `Host` headers get 403, which blocks DNS rebinding. |
 
 ### Behind a reverse proxy
 
@@ -91,7 +92,11 @@ server {
 }
 ```
 
-HAProxy:
+nginx sends `127.0.0.1:3000` as `Host` here, so nothing else is needed.
+
+HAProxy passes the client's `Host` header on, so set
+`AWSTATS_ALLOWED_HOSTS=stats.example.com` (in the container with
+`-e AWSTATS_ALLOWED_HOSTS=stats.example.com`):
 
 ```haproxy
 userlist stats_users

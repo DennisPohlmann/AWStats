@@ -74,3 +74,15 @@ test('a hostile request line does not stall the IP search', async () => {
   assert.strictEqual(r.hits[0].raw.length > 40000, true);
   assert.deepStrictEqual([r.hits[1].url, r.hits[1].status], ['/x', 404]);
 });
+
+test('the API only answers to localhost, IP addresses and allowed host names', async () => {
+  const { server, hostAllowed } = require('../server/index.js');
+  for (const h of ['localhost:3000', '127.0.0.1:3000', '[::1]:3000', '10.0.0.5']) assert.ok(hostAllowed(h), h);
+  for (const h of ['rebind.attacker.example', 'stats.example.com', '', undefined]) assert.ok(!hostAllowed(h), String(h));
+  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  const get = host => new Promise((resolve, reject) => require('http').get({ port: server.address().port, path: '/api/sites', headers: { host } }, res => { res.resume(); resolve(res.statusCode); }).on('error', reject));
+  try {
+    assert.strictEqual(await get('localhost'), 200);
+    assert.strictEqual(await get('rebind.attacker.example'), 403);
+  } finally { server.close(); }
+});

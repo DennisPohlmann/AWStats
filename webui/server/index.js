@@ -1,5 +1,6 @@
 // AWStats NG server: JSON API on top of AWStats data files + static web UI.
 const http = require('http');
+const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const { listSites, load } = require('./datafile');
@@ -12,6 +13,13 @@ const CONF_DIR = process.env.AWSTATS_CONF_DIR || '/etc/awstats';
 const WEB_DIR = path.join(__dirname, '../web/dist');
 const PORT = +process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1'; // the UI shows visitor IPs: keep it local, publish via reverse proxy with auth
+// Host names the API answers to besides localhost and IP addresses. Blocks DNS rebinding:
+// a foreign web page whose name resolves to 127.0.0.1 still sends its own name as Host.
+const ALLOWED_HOSTS = (process.env.AWSTATS_ALLOWED_HOSTS || '').toLowerCase().split(',').map(h => h.trim()).filter(Boolean);
+function hostAllowed(header = '') {
+  const h = header.toLowerCase().replace(/:\d+$/, '').replace(/^\[(.*)\]$/, '$1');
+  return h === 'localhost' || net.isIP(h) !== 0 || ALLOWED_HOSTS.includes(h);
+}
 
 // ---- labels --------------------------------------------------------------------------------
 const browserKeys = Object.keys(L.browsers).sort((a, b) => b.length - a.length);
@@ -184,6 +192,7 @@ const server = http.createServer(async (req, res) => {
       return res.end('ok');
     }
     if (url.pathname.startsWith('/api/')) {
+      if (!hostAllowed(req.headers.host)) throw httpError(403, 'host not allowed: add it to AWSTATS_ALLOWED_HOSTS');
       let parts;
       try { parts = url.pathname.slice(5).split('/').map(decodeURIComponent); } catch { throw httpError(400, 'bad url encoding'); }
       const body = JSON.stringify(await api(parts, url.searchParams));
@@ -204,4 +213,4 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) server.listen(PORT, HOST, () => console.log(`AWStats NG on http://${HOST}:${PORT}  data: ${DATA_DIR}`));
-module.exports = { api, aggregate, server };
+module.exports = { api, aggregate, server, hostAllowed };
