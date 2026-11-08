@@ -29,9 +29,9 @@ jobs:
       matrix:
         include:
           - language: actions
-            build-mode: ${{ matrix.build-mode }}
+            build-mode: none
           - language: javascript-typescript
-            build-mode: ${{ matrix.build-mode }}
+            build-mode: none
           - language: go
             build-mode: autobuild
     steps:
