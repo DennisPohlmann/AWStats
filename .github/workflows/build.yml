@@ -1,8 +1,9 @@
 name: build
 
 # Every push (any branch) and every pull request tests and builds the web
-# interface against data files made by awstats.pl, and builds and scans the
-# container image with Trivy. A push to main also publishes the image as
+# interface against data files made by awstats.pl, checks that the Go updater
+# (cmd/awstats) writes the same data files from the same logs, and builds
+# and scans the container image with Trivy. A push to main also publishes the image as
 # ghcr.io/<owner>/awstats:edge, and so does the weekly run (schedule), to
 # take in the Alpine updates of apk upgrade without waiting for a commit.
 # Nothing else is published then: no tag, no GitHub release, no
@@ -66,6 +67,16 @@ jobs:
         run: perl tools/export-labels.pl ../wwwroot/cgi-bin/lib | cmp - server/labels.json
       - name: test data from awstats.pl
         run: sh testdata/build.sh ../wwwroot/cgi-bin
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Go updater writes the same data files as awstats.pl
+        working-directory: .
+        run: |
+          test -z "$(gofmt -l cmd)" || { gofmt -l cmd; exit 1; }
+          go vet ./...
+          go test ./...
       - name: tests
         run: npm test
       - name: build
