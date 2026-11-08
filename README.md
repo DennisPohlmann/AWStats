@@ -1,8 +1,8 @@
 # AWStats - Advanced Web Statistics
 
-## About this fork
-
-This fork keeps AWStats in use and modernizes it step by step:
+AWStats is a web server log file analyzer. This repository carries it on:
+the log analysis with `awstats.pl` keeps working as before, and AWStats is
+developed further here.
 
 - **Web interface:** a Node.js interface in [`webui/`](webui/README.md) that
   reads the existing AWStats data files, with charts, IP search, forecasts,
@@ -14,20 +14,7 @@ This fork keeps AWStats in use and modernizes it step by step:
 - **Builds and releases:** every push is built and tested; releases are made
   by hand with semantic-release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
-AWStats was created and maintained by Laurent Destailleur; the original
-documentation follows below. License: [GPL-3.0-or-later](LICENSE).
-
----
-
-
-> **Deprecation notice (November 2025)**  
-> AWStats has been maintained for 25 years with enormous appreciation for everyone who used and contributed to it. The AWStats project is now deprecated and no longer actively developed. For modern, privacy-respecting, supported log analytics we strongly recommend migrating to Matomo Log Analytics.  
-> - Matomo Log Analytics: https://matomo.org/log-analytics/  
-> - Matomo (main site): https://matomo.org/  
-> - How to migrate from AWStats to Matomo (FAQ): https://matomo.org/faq/log-analytics-tool/how-do-i-migrate-from-awstats-to-matomo/
->  
-> The rest of this README preserves the original AWStats documentation for historical and reference purposes.
-
+AWStats was created by Laurent Destailleur. License: [GPL-3.0-or-later](LICENSE).
 
 AWStats (Advanced Web Statistics) is a powerful, full-featured web server
 logfile analyzer which shows you all your Web statistics including: visitors,
@@ -38,12 +25,10 @@ It works with IIS 5.0+, Apache and all major web, wap, proxy, streaming
 server log files (and even ftp servers or mail logs) on all Operating Systems.
 
 - License: GNU GPL v3+ (GNU General Public License. See LICENSE file), OSI Certified Open Source Software license.
-- Version: 8.0
-- Release date: August 2025
+- Based on: AWStats 8.0 (August 2025)
 - Platforms: All (Linux, NT, BSD, Solaris and other *NIX's, BeOS, OS/2...)
-- Author: Laurent Destailleur <eldy@users.sourceforge.net>
-
-AWStats official web site and latest version: [https://www.awstats.org](https://www.awstats.org)
+- Original author: Laurent Destailleur <eldy@users.sourceforge.net>
+- Source and releases: <https://github.com/DennisPohlmann/AWStats>
 
 - [Features and requirements of AWStats](#features-and-requirements) 
   * [Features, what AWStats can show you](#features)
@@ -101,7 +86,6 @@ It supports the following features as well:
 - Help and tooltips on HTML reported pages
 - Easy to use (Just one configuration file to edit)
 - Analysis database can be stored in XML format (for XSLT processing, ...)
-- A Webmin module
 - Free (GNU GPL) with sources (perl scripts)
 - Available on all platforms
 
@@ -122,8 +106,8 @@ If not, you can solve this by downloading last Perl version at:
 
 The distribution of AWStats package includes the following files:
 
-	README.TXT                          This file
-	docs/LICENSE                        GNU General Public Licence
+	README.md                           This file
+	LICENSE                             GNU General Public Licence
 	docs/*                              AWStats documentation (setup/usage...)
 	wwwroot/cgi-bin/awstats.pl          THE MAIN AWSTATS PROGRAM (CLI/CGI)
 	wwwroot/cgi-bin/awredir.pl          A tool to track exit clicks
@@ -141,34 +125,22 @@ The distribution of AWStats package includes the following files:
 	wwwroot/css                         Samples of CSS files
 	wwwroot/js                          Javascript sources for "Misc" feature
 	tools/*                             Other provided tools
-	tools/webmin/awstats-x.x.wbm        A Webmin module for AWStats
 	tools/xslt/awstats.xsd              AWStats XML database schema descriptor
 	tools/xslt/*                        Demo to manipulate AWStats XML database
+	webui/                              Web interface for the data files (Node.js)
 
 ## INSTALL, SETUP AND USE AWSTATS
 
-The documentation available for this release in HTML format is in the docs/ directory.
-
-You can find a most up-to-date documentation at:
-<https://www.awstats.org>
+The documentation in HTML format is in the docs/ directory. The web
+interface is described in [webui/README.md](webui/README.md).
 
 ### BENCHMARK
 Tests and results are available in AWStats documentation, in docs/ directory.
 
 
-### SOCIAL NETWORKS
-
-Follow AWStats project on:
-
-- Facebook: <https://www.facebook.com/awstats.org>
-- Twitter: <https://www.twitter.com/awstats_project>
-
 ## ABOUT THE AUTHOR, LICENSE AND SUPPORT
 
 Copyright (C) 2000-2025 - Laurent Destailleur - eldy@users.sourceforge.net - <https://www.dolicloud.com>
-
-Laurent Destailleur is also the project leader of [Dolibarr ERP CRM Opensource project](https://www.dolibarr.org),
-and author of AWBot, CVSChangeLogBuilder, DoliDroid and founder of DoliCloud SaaS <https://www.dolicloud.com>.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
