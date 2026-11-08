@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+.git
+.github
+webui/testdata/logs
+webui/testdata/conf
+Dockerfile

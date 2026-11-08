@@ -31,7 +31,30 @@ codes) come from the AWStats tables in `wwwroot/cgi-bin/lib/*.pm`, exported to
 - **Node.js 20 or newer.** The server itself has no npm dependencies; npm is only needed to build the interface.
 - **AWStats** to create the data files, as before. `awstats.pl` 8.x needs the Perl modules `JSON::XS` and `Try::Tiny` (Debian/Ubuntu: `apt install libjson-xs-perl libtry-tiny-perl`).
 
-## Running it
+## Running it in a container
+
+The image contains only the web interface. Mount your existing AWStats data
+directory (the `DirData` of your configs) read-only:
+
+```sh
+docker run -d --name awstats -p 127.0.0.1:3000:3000 \
+  -v /var/lib/awstats:/var/lib/awstats:ro \
+  ghcr.io/dennispohlmann/awstats:latest
+# -> http://127.0.0.1:3000
+```
+
+or, from the repository root, `docker compose up -d` (see
+`docker-compose.yml`; `AWSTATS_DATA=/path/to/data` picks another directory).
+For the IP search, also mount the configs at `/etc/awstats` and the logs at
+the path their `LogFile` names. The container listens on all interfaces
+inside the container; the port mapping above keeps it on the host's
+loopback, ready for a reverse proxy. `GET /healthz` answers `ok` while the
+data directory is readable.
+
+Images: `edge` follows `main`, releases are tagged `<version>`,
+`<major>.<minor>` and `latest`.
+
+## Running it without a container
 
 ```sh
 cd webui

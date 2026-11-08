@@ -178,6 +178,11 @@ const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
+    if (url.pathname === '/healthz') { // container health check: the data directory must be readable
+      fs.accessSync(DATA_DIR, fs.constants.R_OK);
+      res.writeHead(200, { 'content-type': 'text/plain' });
+      return res.end('ok');
+    }
     if (url.pathname.startsWith('/api/')) {
       let parts;
       try { parts = url.pathname.slice(5).split('/').map(decodeURIComponent); } catch { throw httpError(400, 'bad url encoding'); }

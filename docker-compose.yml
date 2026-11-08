@@ -1,0 +1,18 @@
+# Web interface for existing AWStats data files.
+#
+#   docker compose up -d     ->  http://127.0.0.1:3000
+#
+# Set AWSTATS_DATA to the DirData of your AWStats configs (default
+# /var/lib/awstats). The directory is mounted read-only.
+services:
+  awstats:
+    image: ghcr.io/dennispohlmann/awstats:latest
+    build: .
+    ports:
+      - "127.0.0.1:3000:3000"   # local only: publish through a reverse proxy with a login
+    volumes:
+      - ${AWSTATS_DATA:-/var/lib/awstats}:/var/lib/awstats:ro
+      # Optional, for the IP search in the raw logs:
+      # - /etc/awstats:/etc/awstats:ro
+      # - /var/log/apache2:/var/log/apache2:ro
+    restart: unless-stopped
