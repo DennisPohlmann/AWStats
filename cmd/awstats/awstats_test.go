@@ -125,7 +125,8 @@ func TestSameAsAwstatsPl(t *testing.T) {
 	}
 }
 
-// The web interface test data was built by awstats.pl from these logs (see webui/testdata/build.sh).
+// testdata/golden/{apache,nginx} were written by awstats.pl from the web interface test logs
+// (webui/testdata/build.sh makes the logs).
 func TestSameAsAwstatsPlOnWebUITestData(t *testing.T) {
 	logs := "../../webui/testdata/logs"
 	if _, err := os.Stat(logs); err != nil {
@@ -140,7 +141,7 @@ func TestSameAsAwstatsPlOnWebUITestData(t *testing.T) {
 		t.Run(site, func(t *testing.T) {
 			dir := t.TempDir()
 			update(t, site, tmp, dir)
-			compareDirs(t, "../../webui/testdata/data", dir, "."+site, "."+site, false)
+			compareDirs(t, filepath.Join("testdata/golden", site), dir, "."+site, "."+site, false)
 		})
 	}
 }
@@ -168,7 +169,7 @@ func TestIncrementalUpdate(t *testing.T) {
 	}
 	// The last referrer of an error URL is the one of the data file after an update (awstats.pl
 	// does the same), so it can differ from a single run.
-	compareDirs(t, "../../webui/testdata/data", dir, ".apache", ".apache", true)
+	compareDirs(t, "testdata/golden/apache", dir, ".apache", ".apache", true)
 }
 
 func copyFile(t *testing.T, src, dst string, gunzip bool) {
