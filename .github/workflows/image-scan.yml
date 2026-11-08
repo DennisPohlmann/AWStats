@@ -1,6 +1,7 @@
 name: image scan
 
-# Every night: scans the published images (tags latest and edge) with a
+# Every night: scans the published images (awstats and awstats-updater,
+# tags latest and edge) with a
 # fresh vulnerability database, because new CVEs show up without any change
 # here. Findings with a fix go to the Security tab (code scanning, one
 # category per tag). Fixable HIGH or CRITICAL ones open one issue labelled
@@ -16,7 +17,7 @@ permissions:
   contents: read
 
 env:
-  IMAGE: ghcr.io/dennispohlmann/awstats
+  REGISTRY: ghcr.io/dennispohlmann
   ISSUE_TITLE: Fixable HIGH/CRITICAL vulnerabilities in the published image
 
 jobs:
@@ -30,34 +31,48 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7 (.trivyignore and the setup action)
       - uses: ./.github/actions/setup-trivy
-      - name: scan latest and edge
+      - name: scan latest and edge of both images
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ github.token }}
         run: |
-          for tag in latest edge; do
+          for ref in awstats:latest awstats:edge awstats-updater:latest awstats-updater:edge; do
+            f=$(echo "$ref" | tr : -)
+            # an image that is not published yet (awstats-updater before its first release) is skipped
             trivy image --scanners vuln --ignore-unfixed \
-              --format sarif --output "trivy-$tag.sarif" "$IMAGE:$tag"
+              --format sarif --output "trivy-$f.sarif" "$REGISTRY/$ref" ||
+              { echo "::warning::$REGISTRY/$ref not scanned (not published?)"; continue; }
             trivy image --skip-db-update --scanners vuln --ignore-unfixed \
-              --severity HIGH,CRITICAL --format json --output "fixable-$tag.json" "$IMAGE:$tag"
+              --severity HIGH,CRITICAL --format json --output "fixable-$f.json" "$REGISTRY/$ref"
           done
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
-          sarif_file: trivy-latest.sarif
+          sarif_file: trivy-awstats-latest.sarif
           category: image-latest
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
-          sarif_file: trivy-edge.sarif
+          sarif_file: trivy-awstats-edge.sarif
           category: image-edge
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        if: hashFiles('trivy-awstats-updater-latest.sarif') != ''
+        with:
+          sarif_file: trivy-awstats-updater-latest.sarif
+          category: updater-latest
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        if: hashFiles('trivy-awstats-updater-edge.sarif') != ''
+        with:
+          sarif_file: trivy-awstats-updater-edge.sarif
+          category: updater-edge
       - name: open, update or close the issue
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          rows=$(for tag in latest edge; do
-            jq -r --arg tag "$tag" '.Results[]? | .Vulnerabilities[]? |
-              "| \($tag) | \(.PkgName) | [\(.VulnerabilityID)](\(.PrimaryURL // "")) | \(.Severity) | \(.InstalledVersion) | \(.FixedVersion) |"' \
-              "fixable-$tag.json"
+          rows=$(for f in fixable-*.json; do
+            ref=${f#fixable-}; ref=${ref%.json}
+            jq -r --arg ref "$ref" '.Results[]? | .Vulnerabilities[]? |
+              "| \($ref) | \(.PkgName) | [\(.VulnerabilityID)](\(.PrimaryURL // "")) | \(.Severity) | \(.InstalledVersion) | \(.FixedVersion) |"' \
+              "$f"
           done | sort -u)
           open=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label security \
             --search "\"$ISSUE_TITLE\" in:title" --json number --jq '.[0].number // empty')
@@ -69,9 +84,9 @@ jobs:
             exit 0
           fi
           {
-            echo "The nightly Trivy scan of \`$IMAGE\` found vulnerabilities rated HIGH or CRITICAL that have a fixed version ([run]($RUN_URL), $(date -u +%F))."
+            echo "The nightly Trivy scan of the images in \`$REGISTRY\` found vulnerabilities rated HIGH or CRITICAL that have a fixed version ([run]($RUN_URL), $(date -u +%F))."
             echo
-            echo "| Tag | Package | Vulnerability | Severity | Installed | Fixed in |"
+            echo "| Image | Package | Vulnerability | Severity | Installed | Fixed in |"
             echo "| --- | --- | --- | --- | --- | --- |"
             echo "$rows"
             echo
