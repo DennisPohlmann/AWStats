@@ -2,19 +2,19 @@
 
 Fork of eldy/awstats. Two parts:
 
-- `wwwroot/cgi-bin/awstats.pl` (Perl, upstream): parses web server logs and
-  writes the monthly data files `awstatsMMYYYY[.config].txt` into `DirData`.
-- `cmd/awstats/` (Go): the replacement for the update part of `awstats.pl`.
-  Reads the same configs and logs and writes the same data files; the tests
-  compare its output with data files written by `awstats.pl`. Detection
-  tables are `cmd/awstats/lib.json` (a dump of `wwwroot/cgi-bin/lib/*.pm`).
+- `cmd/awstats/` (Go): the updater. Reads `awstats.<site>.conf` configs and
+  web server logs and writes the monthly data files
+  `awstatsMMYYYY[.config].txt` into `DirData`, in the format of the original
+  `awstats.pl` (removed from this repository). The tests compare its output
+  with data files written by `awstats.pl` (`cmd/awstats/testdata/golden`).
+  Detection tables: `cmd/awstats/lib.json`. Model config:
+  `conf/awstats.model.conf`.
 - `webui/` (Node.js): reads those data files and serves a JSON API and a
   React/ECharts interface. `webui/server/` has no npm dependencies; the
   interface is built with Vite into `webui/web/dist`. See `webui/README.md`.
 
-Build and check: `cd webui && npm ci && sh testdata/build.sh ../wwwroot/cgi-bin
-&& npm test && npm run build`, then in the root `go vet ./... && go test ./...`
-(the Go tests use the data files `build.sh` wrote with `awstats.pl`).
+Build and check: `cd webui && npm ci && sh testdata/build.sh && npm test &&
+npm run build`, then in the root `go vet ./... && go test ./...`.
 
 Ways to run (all four must keep working): updater and web interface each
 as a container or directly on the host. `Dockerfile` builds two images:
@@ -28,9 +28,10 @@ files `awstats-updater-<v>-linux-<arch>.tar.gz` (binary, systemd timer in
 
 1. **Data files stay compatible.** The data directory and the format of the
    data files must not change in a way that breaks existing files: old files
-   must stay readable by `awstats.pl` and by the web interface. A future
-   parser that replaces `awstats.pl` must write the same format and is
-   checked against `awstats.pl` output on the same logs.
+   must stay readable by the updater and the web interface, and the updater
+   must keep writing the data files `awstats.pl` wrote from the same logs
+   (the golden files in `cmd/awstats/testdata/golden` must not be changed to
+   make a test pass).
 2. **Releases only on "Release Go" (standing rule from Dennis).** Every push
    is built and tested by CI (`.github/workflows/build.yml`); a push to `main`
    publishes the `edge` image. A release is only started when Dennis
@@ -50,7 +51,8 @@ files `awstats-updater-<v>-linux-<arch>.tar.gz` (binary, systemd timer in
    visitors or credentials; test data is generated (`webui/testdata/`).
 5. **No references to other projects** of the maintainer in this repository.
 6. Documentation and code comments in English; the interface text is German.
-7. Keep upstream copyright and license notices in the Perl files (GPL).
+7. Keep the upstream copyright and license notices (GPL), see
+   `THIRD-PARTY-LICENSES.md`.
 8. **Commits are signed with Dennis' SSH key on his av-linux machine**
    (standing rule). Never commit or push from a cloud session; prepare the
    changes and let them be committed there.
