@@ -24,8 +24,8 @@ pinned in `webui/package-lock.json`.
 | react | 18.3.1 | MIT | https://github.com/facebook/react |
 | react-dom | 18.3.1 | MIT | https://github.com/facebook/react |
 | scheduler | 0.23.2 | MIT | https://github.com/facebook/react |
-| echarts | 5.5.1 | Apache-2.0 | https://github.com/apache/echarts |
-| zrender | 5.6.0 | BSD-3-Clause | https://github.com/ecomfe/zrender |
+| echarts | 6.1.0 | Apache-2.0 | https://github.com/apache/echarts |
+| zrender | 6.1.0 | BSD-3-Clause | https://github.com/ecomfe/zrender |
 | tslib | 2.3.0 | 0BSD | https://github.com/microsoft/tslib |
 
 The Node.js server in `webui/server/` has no npm dependencies. Build-only

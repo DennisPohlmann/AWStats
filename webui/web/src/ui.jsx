@@ -108,10 +108,10 @@ export function donutOption(c, rows, { label = r => r.label || r.id, value = r =
   const narrow = matchMedia('(max-width: 600px)').matches; // phone: legend below the ring instead of beside it
   return {
     tooltip: { ...tooltipBase(c), trigger: 'item', formatter: p => `<b>${esc(fmt(p.value))}</b> (${p.percent.toLocaleString('de-DE')} %)<div style="color:${c.ink2}">${esc(p.name)}</div>` },
-    legend: { orient: narrow ? 'horizontal' : 'vertical', ...(narrow ? { left: 0, bottom: 0 } : { right: 0, top: 'middle' }), textStyle: { color: c.ink2, width: narrow ? 130 : 150, overflow: 'truncate' }, icon: 'roundRect', itemWidth: 10, itemHeight: 10,
+    legend: { orient: narrow ? 'horizontal' : 'vertical', ...(narrow ? { left: 0, bottom: 0 } : { right: 0, top: 'middle' }), textStyle: { color: c.ink2, width: narrow ? 130 : 128, overflow: 'truncate' }, icon: 'roundRect', itemWidth: 10, itemHeight: 10,
       formatter: name => `${pct(top.find(d => d.name === name)?.value || 0, total)}  ${name}` }, // share first: a long name is truncated, the number never
-    title: { text: fmt(total), subtext: 'gesamt', left: narrow ? '49%' : '29%', top: narrow ? '30%' : '42%', textAlign: 'center', textStyle: { color: c.ink, fontSize: 18, fontWeight: 600 }, subtextStyle: { color: c.muted } },
-    series: [{ type: 'pie', radius: narrow ? ['38%', '58%'] : ['52%', '78%'], center: narrow ? ['50%', '37%'] : ['30%', '50%'], data: top, label: { show: false }, itemStyle: { borderColor: c.surface, borderWidth: 2, borderRadius: 4 }, emphasis: { scaleSize: 4 } }],
+    title: { text: fmt(total), subtext: 'gesamt', left: narrow ? '49%' : '27%', top: narrow ? '30%' : '42%', textAlign: 'center', textStyle: { color: c.ink, fontSize: 18, fontWeight: 600 }, subtextStyle: { color: c.muted } },
+    series: [{ type: 'pie', radius: narrow ? ['38%', '58%'] : ['48%', '72%'], center: narrow ? ['50%', '37%'] : ['28%', '50%'], data: top, label: { show: false }, itemStyle: { borderColor: c.surface, borderWidth: 2, borderRadius: 4 }, emphasis: { scaleSize: 4 } }],
   };
 }
 
