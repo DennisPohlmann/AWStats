@@ -1,0 +1,21 @@
+# Updates the AWStats data files of all /etc/awstats/awstats.<site>.conf.
+# Install: copy both files to /etc/systemd/system/, then
+#   systemctl daemon-reload && systemctl enable --now awstats-update.timer
+[Unit]
+Description=AWStats update (web server logs to data files)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/awstats -all
+# A user that can read the logs (often group adm) and write DirData, e.g.
+#   useradd --system --gid adm --no-create-home awstats
+#   install -d -o awstats /var/lib/awstats
+User=awstats
+Group=adm
+Nice=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/awstats
+ProtectHome=true
+PrivateTmp=true
