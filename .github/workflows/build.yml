@@ -45,7 +45,6 @@ permissions:
 
 env:
   NPM_CONFIG_UPDATE_NOTIFIER: "false"
-  IMAGE: ghcr.io/${{ github.repository_owner }}/awstats
 
 jobs:
   check:
@@ -88,6 +87,9 @@ jobs:
   # .trivyignore with a reason and an expiry date.
   image-scan:
     runs-on: ubuntu-26.04
+    strategy:
+      matrix:
+        target: [web, updater]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup-trivy
@@ -99,14 +101,15 @@ jobs:
           DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: .
+          target: ${{ matrix.target }}
           platforms: linux/amd64
           load: true
-          tags: awstats:scan
-          cache-from: type=gha
+          tags: awstats-${{ matrix.target }}:scan
+          cache-from: type=gha,scope=${{ matrix.target }}
       - name: scan the image
         run: >-
           trivy image --scanners vuln --ignore-unfixed
-          --severity HIGH,CRITICAL --exit-code 1 awstats:scan
+          --severity HIGH,CRITICAL --exit-code 1 awstats-${{ matrix.target }}:scan
 
   release:
     needs: [check, image-scan]
@@ -141,6 +144,8 @@ jobs:
           npm ci --prefix .github/release --ignore-scripts --no-audit --no-fund
           .github/release/node_modules/.bin/semantic-release
 
+  # Two images from the Dockerfile: web (ghcr.io/<owner>/awstats) and
+  # updater (ghcr.io/<owner>/awstats-updater).
   # Publishes edge on a push to main and on the weekly schedule, and on a
   # release the version tags, with an SBOM and full provenance as
   # attestations; a release also gets the SBOM as an SPDX file. Pushes to
@@ -150,10 +155,18 @@ jobs:
     needs: [check, image-scan, release]
     if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.check.result == 'success' && needs.image-scan.result == 'success' && needs.release.result != 'failure' }}
     runs-on: ubuntu-26.04
+    strategy:
+      matrix:
+        include:
+          - target: web
+            name: awstats
+          - target: updater
+            name: awstats-updater
     permissions:
       contents: write # the SBOM file in the release
       packages: write
     env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}
       RELEASE: ${{ needs.release.outputs.version }}
       PUBLISH: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'schedule' || needs.release.outputs.version != '' }}
     steps:
@@ -182,6 +195,7 @@ jobs:
           DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: .
+          target: ${{ matrix.target }}
           platforms: linux/amd64
           push: ${{ env.PUBLISH == 'true' }}
           sbom: ${{ env.PUBLISH == 'true' }}
@@ -189,8 +203,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: VERSION=${{ env.RELEASE || format('edge+{0}', github.sha) }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
       - uses: ./.github/actions/setup-trivy
         if: env.RELEASE != ''
       - name: add the SBOM to the release
@@ -200,16 +214,61 @@ jobs:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ github.token }}
         run: |
-          sbom="dist/awstats-$RELEASE-image.spdx.json"
+          sbom="dist/${{ matrix.name }}-$RELEASE-image.spdx.json"
           mkdir -p dist
           trivy image --format spdx-json --output "$sbom" "${IMAGE,,}:$RELEASE"
           gh release upload "v$RELEASE" "$sbom" --clobber --repo "$GITHUB_REPOSITORY"
+
+  # Files for running without a container: the updater as a static binary
+  # per platform and the built web interface (server + web/dist, needs only
+  # Node.js), with SHA-256 checksums.
+  binaries:
+    needs: release
+    if: needs.release.outputs.version != ''
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    env:
+      RELEASE: ${{ needs.release.outputs.version }}
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: v${{ needs.release.outputs.version }}
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+      - name: build
+        run: |
+          mkdir -p dist
+          for p in linux/amd64 linux/arm64; do
+            d="awstats-updater-$RELEASE-${p%/*}-${p#*/}"
+            mkdir -p "$d"
+            CGO_ENABLED=0 GOOS=${p%/*} GOARCH=${p#*/} go build -trimpath \
+              -ldflags "-s -w -X main.version=$RELEASE" -o "$d/awstats" ./cmd/awstats
+            cp LICENSE wwwroot/cgi-bin/awstats.model.conf contrib/systemd/awstats-update.* "$d/"
+            tar czf "dist/$d.tar.gz" "$d"
+          done
+          (cd webui && npm ci --no-audit --no-fund && npm run build)
+          d="awstats-web-$RELEASE"
+          mkdir -p "$d/web"
+          cp -r webui/server "$d/server" && cp -r webui/web/dist "$d/web/dist" && cp LICENSE "$d/"
+          tar czf "dist/$d.tar.gz" "$d"
+          (cd dist && sha256sum *.tar.gz > SHA256SUMS)
+      - name: add the files to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "v$RELEASE" dist/* --clobber --repo "$GITHUB_REPOSITORY"
 
   # The release stays a draft until the image SBOM is in it; then it is
   # published. A failed job leaves the draft: re-run the failed jobs of this
   # run (the upload replaces what is already there).
   publish:
-    needs: [release, image]
+    needs: [release, image, binaries]
     if: needs.release.outputs.version != ''
     runs-on: ubuntu-26.04
     permissions:
