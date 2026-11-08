@@ -1,18 +1,40 @@
-# Web interface for existing AWStats data files.
+# AWStats in two containers: the updater writes the data files from the
+# logs, the web interface shows them.
 #
 #   docker compose up -d     ->  http://127.0.0.1:3000
 #
-# Set AWSTATS_DATA to the DirData of your AWStats configs (default
-# /var/lib/awstats). The directory is mounted read-only.
+# AWSTATS_CONF  configs awstats.<site>.conf (default /etc/awstats)
+# AWSTATS_LOGS  web server logs (default /var/log/apache2), mounted at the
+#               same path: LogFile in the configs must point there
+# AWSTATS_DATA  data files (default /var/lib/awstats); DirData in the configs
+#               must be /var/lib/awstats, and the directory must be writable
+#               for uid 1000
+#
+# The updater updates all configs once an hour. To update one site now:
+#   docker compose run --rm updater -config=example.com
+# Without the updater container (binary from cron or a systemd timer), start
+# only the web interface: docker compose up -d web
 services:
-  awstats:
+  web:
     image: ghcr.io/dennispohlmann/awstats:latest
     build: .
+    init: true            # node as PID 1 does not stop on SIGTERM otherwise
     ports:
       - "127.0.0.1:3000:3000"   # local only: publish through a reverse proxy with a login
     volumes:
       - ${AWSTATS_DATA:-/var/lib/awstats}:/var/lib/awstats:ro
       # Optional, for the IP search in the raw logs:
-      # - /etc/awstats:/etc/awstats:ro
-      # - /var/log/apache2:/var/log/apache2:ro
+      # - ${AWSTATS_CONF:-/etc/awstats}:/etc/awstats:ro
+      # - ${AWSTATS_LOGS:-/var/log/apache2}:${AWSTATS_LOGS:-/var/log/apache2}:ro
+    restart: unless-stopped
+
+  updater:
+    image: ghcr.io/dennispohlmann/awstats-updater:latest
+    build:
+      context: .
+      target: updater
+    volumes:
+      - ${AWSTATS_DATA:-/var/lib/awstats}:/var/lib/awstats
+      - ${AWSTATS_CONF:-/etc/awstats}:/etc/awstats:ro
+      - ${AWSTATS_LOGS:-/var/log/apache2}:${AWSTATS_LOGS:-/var/log/apache2}:ro
     restart: unless-stopped
