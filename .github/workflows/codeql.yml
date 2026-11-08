@@ -1,0 +1,40 @@
+name: codeql
+
+# CodeQL code scanning for the parts of the repository it can read: the
+# workflows (actions), the web interface (javascript-typescript) and the
+# graph applet (java, without a build). Perl, the bulk of AWStats, is not
+# supported by CodeQL. Findings go to the Security tab (code scanning).
+on:
+  push:
+    branches: ['**', '!dependabot/**']
+  pull_request:
+  schedule:
+    - cron: '29 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript, java-kotlin]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          category: /language:${{ matrix.language }}
