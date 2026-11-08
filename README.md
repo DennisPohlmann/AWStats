@@ -1,48 +1,16 @@
 # AWStats - Advanced Web Statistics
 
-AWStats is a web server log file analyzer. This repository carries it on:
-the log analysis with `awstats.pl` keeps working as before, and AWStats is
-developed further here.
+AWStats is a log file analyzer for web servers. `awstats.pl` reads the access
+logs of Apache, nginx, IIS and most other web, proxy, streaming, FTP and mail
+servers and stores the results in monthly data files. A web interface in
+[`webui/`](webui/README.md) shows those data files with charts, IP search and
+forecasts, for several sites and on the phone.
 
-- **Web interface:** a Node.js interface in [`webui/`](webui/README.md) that
-  reads the existing AWStats data files, with charts, IP search, forecasts,
-  several sites and a phone layout. It runs as a container
-  (`ghcr.io/dennispohlmann/awstats`) or directly with Node.js behind a
-  reverse proxy.
-- **Data files stay compatible:** `awstats.pl` keeps writing the same data
-  files, so all existing history stays readable.
-- **Builds and releases:** every push is built and tested; releases are made
-  by hand with semantic-release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+## Features
 
-AWStats was created by Laurent Destailleur. License: [GPL-3.0-or-later](LICENSE).
+### Log analysis
 
-AWStats (Advanced Web Statistics) is a powerful, full-featured web server
-logfile analyzer which shows you all your Web statistics including: visitors,
-pages, hits, hours, search engines, keywords used to find your site, broken
-links, robots and many more...
-
-It works with IIS 5.0+, Apache and all major web, wap, proxy, streaming
-server log files (and even ftp servers or mail logs) on all Operating Systems.
-
-- License: GNU GPL v3+ (GNU General Public License. See LICENSE file), OSI Certified Open Source Software license.
-- Based on: AWStats 8.0 (August 2025)
-- Platforms: All (Linux, NT, BSD, Solaris and other *NIX's, BeOS, OS/2...)
-- Original author: Laurent Destailleur <eldy@users.sourceforge.net>
-- Source and releases: <https://github.com/DennisPohlmann/AWStats>
-
-- [Features and requirements of AWStats](#features-and-requirements) 
-  * [Features, what AWStats can show you](#features)
-  * [Requirements for using AWStats](#requirements)
-  * [Files](#files)
-- [Install, Setup and Use AWStats](#install-setup-and-use-awstats)
-- [Benchmark](#benchmark)
-- [About the author, license and support](#about-the-author-license-and-support)
-
-## FEATURES AND REQUIREMENTS
-
-### Features
-
-A full log analysis enables AWStats to show you the following information:
+`awstats.pl` analyzes the logs and shows:
 - Number of VISITS and UNIQUE VISITORS
 - Visits duration and last visits
 - Authenticated users, and last authenticated visits
@@ -65,7 +33,7 @@ A full log analysis enables AWStats to show you the following information:
 - Cluster report for load balanced servers ratio
 - Other personalized reports...
 
-It supports the following features as well:
+It also supports:
 - Can analyze all log formats
 - Works from command line and from a browser as a CGI (with dynamic filters capabilities for some charts)
 - Update of statistics can be made on demand from the web interface and not only from your scheduler
@@ -89,25 +57,61 @@ It supports the following features as well:
 - Free (GNU GPL) with sources (perl scripts)
 - Available on all platforms
 
-### Requirements
+### Web interface
 
-To use AWStats CGI script, you need the following requirements:
-- Your server must log web access in a log file you can read.
-- To run awstats, from command line, your operating system must be able to run perl scripts (.pl files).
-- Perl module "Encode" must be available.
+- Reads the data files of `awstats.pl` directly: all existing history works, no extra database.
+- Overview, visitors and IPs, pages, origin, technology, robots, errors and a forecast.
+- IP search across the raw logs, rotated `.gz` files included.
+- Several sites, light and dark mode, phone layout.
+- Runs as a container (`ghcr.io/dennispohlmann/awstats`) or with Node.js behind a reverse proxy.
 
-To run awstats as a CGI (for real-time statistics), your web server must also be able to run such scripts.
+Details: [webui/README.md](webui/README.md).
 
-If not, you can solve this by downloading last Perl version at:
-- <https://www.activestate.com/products/activeperl/> (Windows)
-- <https://www.perl.org/get.html> (All OS)
+## Requirements
 
-### Files
+- **Log analysis:** Perl with the modules `Encode`, `JSON::XS` and `Try::Tiny`
+  (Debian/Ubuntu: `apt install libjson-xs-perl libtry-tiny-perl`), and read
+  access to the web server logs. For real-time statistics as a CGI, the web
+  server must be able to run Perl scripts.
+- **Web interface:** Docker, or Node.js 20 or newer.
 
-The distribution of AWStats package includes the following files:
+## Quick start
+
+1. Create a config for your site from `wwwroot/cgi-bin/awstats.model.conf`
+   (or with `tools/awstats_configure.pl`), for example
+   `/etc/awstats/awstats.example.com.conf`, and set `LogFile`, `LogFormat`,
+   `SiteDomain` and `DirData`.
+2. Update the statistics, for example hourly from cron:
+
+   ```sh
+   perl wwwroot/cgi-bin/awstats.pl -config=example.com -update
+   ```
+
+3. Start the web interface on the data directory (`DirData`):
+
+   ```sh
+   docker run -d --name awstats -p 127.0.0.1:3000:3000 \
+     -v /var/lib/awstats:/var/lib/awstats:ro \
+     ghcr.io/dennispohlmann/awstats:latest
+   ```
+
+   It listens on `http://127.0.0.1:3000`. Publish it only through a reverse
+   proxy with a login, because it shows IP addresses; see
+   [webui/README.md](webui/README.md) for nginx and HAProxy.
+
+## Documentation
+
+- [docs/index.html](docs/index.html): setup, configuration, plugins, FAQ for `awstats.pl`
+- [webui/README.md](webui/README.md): the web interface, its settings and the container
+- [CHANGELOG.md](CHANGELOG.md): changes per release
+- [CONTRIBUTING.md](CONTRIBUTING.md): development, commits and releases
+- [SECURITY.md](SECURITY.md): reporting a vulnerability
+
+## Files
 
 	README.md                           This file
 	LICENSE                             GNU General Public Licence
+	CHANGELOG.md                        Changes per release
 	docs/*                              AWStats documentation (setup/usage...)
 	wwwroot/cgi-bin/awstats.pl          THE MAIN AWSTATS PROGRAM (CLI/CGI)
 	wwwroot/cgi-bin/awredir.pl          A tool to track exit clicks
@@ -129,16 +133,11 @@ The distribution of AWStats package includes the following files:
 	tools/xslt/*                        Demo to manipulate AWStats XML database
 	webui/                              Web interface for the data files (Node.js)
 
-## INSTALL, SETUP AND USE AWSTATS
+## Credits
 
-The documentation in HTML format is in the docs/ directory. The web
-interface is described in [webui/README.md](webui/README.md).
+AWStats was created by Laurent Destailleur.
 
-### BENCHMARK
-Tests and results are available in AWStats documentation, in docs/ directory.
-
-
-## ABOUT THE AUTHOR, LICENSE AND SUPPORT
+## License
 
 Copyright (C) 2000-2025 - Laurent Destailleur - eldy@users.sourceforge.net - <https://www.dolicloud.com>
 
@@ -154,3 +153,5 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+Third-party components of the web interface: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).

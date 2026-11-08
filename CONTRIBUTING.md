@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in this fork of AWStats. Bug reports, ideas,
+Thank you for your interest in AWStats. Bug reports, ideas,
 documentation fixes and code are all welcome. Please follow the
 [Code of Conduct](CODE_OF_CONDUCT.md) in issues, pull requests and anywhere
 else in the project.
@@ -17,7 +17,7 @@ else in the project.
 
 ## How changes get into `main`
 
-This fork is maintained by one person. The maintainer merges changes locally
+AWStats is maintained by one person. The maintainer merges changes locally
 and pushes them to `main`; pull requests are not merged through the GitHub
 interface.
 

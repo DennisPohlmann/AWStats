@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the latest release of this fork receives security fixes. Please update
+Only the latest release receives security fixes. Please update
 to the [latest release](https://github.com/DennisPohlmann/AWStats/releases/latest) before you report a problem, and
 check whether it still happens there.
 
@@ -31,7 +31,7 @@ Please include:
 
 ## What happens next
 
-This fork is maintained by one person in their spare time, so these are
+AWStats is maintained by one person in their spare time, so these are
 goals, not guarantees:
 
 - You get an answer within 7 days that the report has arrived.
