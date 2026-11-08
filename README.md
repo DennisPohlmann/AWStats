@@ -1,5 +1,24 @@
 # AWStats - Advanced Web Statistics
 
+## About this fork
+
+This fork keeps AWStats in use and modernizes it step by step:
+
+- **Web interface:** a Node.js interface in [`webui/`](webui/README.md) that
+  reads the existing AWStats data files, with charts, IP search, forecasts,
+  several sites and a phone layout. It runs as a container
+  (`ghcr.io/dennispohlmann/awstats`) or directly with Node.js behind a
+  reverse proxy.
+- **Data files stay compatible:** `awstats.pl` keeps writing the same data
+  files, so all existing history stays readable.
+- **Builds and releases:** every push is built and tested; releases are made
+  by hand with semantic-release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+AWStats was created and maintained by Laurent Destailleur; the original
+documentation follows below. License: [GPL-3.0-or-later](LICENSE).
+
+---
+
 
 > **Deprecation notice (November 2025)**  
 > AWStats has been maintained for 25 years with enormous appreciation for everyone who used and contributed to it. The AWStats project is now deprecated and no longer actively developed. For modern, privacy-respecting, supported log analytics we strongly recommend migrating to Matomo Log Analytics.  
