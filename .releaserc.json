@@ -26,7 +26,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "echo ${nextRelease.version} > VERSION && sed -i 's/^\\$VERSION  = \"[^ ]* (build/$VERSION  = \"${nextRelease.version} (build/' wwwroot/cgi-bin/awstats.pl && npm version ${nextRelease.version} --prefix webui --no-git-tag-version --allow-same-version",
+        "prepareCmd": "echo ${nextRelease.version} > VERSION && npm version ${nextRelease.version} --prefix webui --no-git-tag-version --allow-same-version",
         "successCmd": "echo version=${nextRelease.version} >> \"$GITHUB_OUTPUT\""
       }
     ],
@@ -36,7 +36,6 @@
         "assets": [
           "CHANGELOG.md",
           "VERSION",
-          "wwwroot/cgi-bin/awstats.pl",
           "webui/package.json",
           "webui/package-lock.json"
         ],

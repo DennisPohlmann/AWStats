@@ -1,9 +1,10 @@
 name: build
 
-# Every push (any branch) and every pull request tests and builds the web
-# interface against data files made by awstats.pl, checks that the Go updater
-# (cmd/awstats) writes the same data files from the same logs, and builds
-# and scans the container image with Trivy. A push to main also publishes the image as
+# Every push (any branch) and every pull request checks that the Go updater
+# (cmd/awstats) writes the same data files as the original awstats.pl
+# (cmd/awstats/testdata/golden), tests and builds the web interface against
+# data files made by the updater, and builds and scans the container image
+# with Trivy. A push to main also publishes the image as
 # ghcr.io/<owner>/awstats:edge, and so does the weekly run (schedule), to
 # take in the Alpine updates of apk upgrade without waiting for a commit.
 # Nothing else is published then: no tag, no GitHub release, no
@@ -60,16 +61,14 @@ jobs:
           cache: npm
           cache-dependency-path: webui/package-lock.json
       - run: npm ci
-      - name: Perl modules for awstats.pl
-        run: sudo apt-get install -y --no-install-recommends libjson-xs-perl libtry-tiny-perl
-      - name: labels are up to date with the AWStats tables
-        run: perl tools/export-labels.pl ../wwwroot/cgi-bin/lib | cmp - server/labels.json
-      - name: test data from awstats.pl
-        run: sh testdata/build.sh ../wwwroot/cgi-bin
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: go.mod
           cache: false
+      - name: labels are up to date with the AWStats tables
+        run: node tools/export-labels.js | cmp - server/labels.json
+      - name: test data from the Go updater
+        run: sh testdata/build.sh
       - name: Go updater writes the same data files as awstats.pl
         working-directory: .
         run: |
@@ -250,7 +249,7 @@ jobs:
             mkdir -p "$d"
             CGO_ENABLED=0 GOOS=${p%/*} GOARCH=${p#*/} go build -trimpath \
               -ldflags "-s -w -X main.version=$RELEASE" -o "$d/awstats" ./cmd/awstats
-            cp LICENSE wwwroot/cgi-bin/awstats.model.conf contrib/systemd/awstats-update.* "$d/"
+            cp LICENSE conf/awstats.model.conf contrib/systemd/awstats-update.* "$d/"
             tar czf "dist/$d.tar.gz" "$d"
           done
           (cd webui && npm ci --no-audit --no-fund && npm run build)
