@@ -1,0 +1,212 @@
+name: build
+
+# Every push (any branch) and every pull request tests and builds the web
+# interface against data files made by awstats.pl, and builds and scans the
+# container image with Trivy. A push to main also publishes the image as
+# ghcr.io/<owner>/awstats:edge, and so does the weekly run (schedule), to
+# take in the Alpine updates of apk upgrade without waiting for a commit.
+# Nothing else is published then: no tag, no GitHub release, no
+# semantic-release.
+#
+# A release is only made by hand: Actions -> build -> Run workflow on main
+# with "release" ticked, or `gh workflow run build.yml --ref main -f
+# release=true`. check and image-scan run first (a fixable HIGH or CRITICAL
+# vulnerability stops the release); only when they passed does
+# semantic-release read the Conventional Commits since the last tag: for a
+# feat, fix or breaking change it bumps VERSION and webui/package.json,
+# writes CHANGELOG.md, commits that as "chore(release): vX.Y.Z [skip ci]",
+# tags vX.Y.Z and creates the GitHub release as a draft. image then builds
+# that tag and pushes the image tags <version>, <major>.<minor> and latest
+# with an SBOM, and publish makes the draft public once everything is in it.
+# docs, chore, ci, build etc. make no release.
+on:
+  push:
+    # every branch except Dependabot's: its pull request builds them anyway
+    branches: ['**', '!dependabot/**']
+  pull_request:
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Make a release (semantic-release, tag, GitHub release, versioned image)
+        type: boolean
+        default: false
+
+# A newer push or pull request update cancels the older check run; manual
+# runs (and so releases) and the weekly run are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  NPM_CONFIG_UPDATE_NOTIFIER: "false"
+  IMAGE: ghcr.io/${{ github.repository_owner }}/awstats
+
+jobs:
+  check:
+    runs-on: ubuntu-26.04
+    defaults:
+      run:
+        working-directory: webui
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: webui/package-lock.json
+      - run: npm ci
+      - name: Perl modules for awstats.pl
+        run: sudo apt-get install -y --no-install-recommends libjson-xs-perl libtry-tiny-perl
+      - name: labels are up to date with the AWStats tables
+        run: perl tools/export-labels.pl ../wwwroot/cgi-bin/lib | cmp - server/labels.json
+      - name: test data from awstats.pl
+        run: sh testdata/build.sh ../wwwroot/cgi-bin
+      - name: tests
+        run: npm test
+      - name: build
+        run: npm run build
+
+  # Builds the image without pushing it and scans it: HIGH or CRITICAL
+  # vulnerabilities that have a fix fail, and so do HIGH or CRITICAL
+  # misconfigurations of the Dockerfile. Findings accepted on purpose go into
+  # .trivyignore with a reason and an expiry date.
+  image-scan:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup-trivy
+      - name: scan the Dockerfile
+        run: trivy config --severity HIGH,CRITICAL --exit-code 1 .
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: awstats:scan
+          cache-from: type=gha
+      - name: scan the image
+        run: >-
+          trivy image --scanners vuln --ignore-unfixed
+          --severity HIGH,CRITICAL --exit-code 1 awstats:scan
+
+  release:
+    needs: [check, image-scan]
+    if: github.event_name == 'workflow_dispatch' && inputs.release
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: releases only from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::a release can only be made from main, not from $GITHUB_REF"
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0 # all tags and commits since the last release
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+      - name: semantic-release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        # semantic-release and its plugins as pinned in .github/release/package-lock.json
+        run: |
+          npm ci --prefix .github/release --ignore-scripts --no-audit --no-fund
+          .github/release/node_modules/.bin/semantic-release
+
+  # Publishes edge on a push to main and on the weekly schedule, and on a
+  # release the version tags, with an SBOM and full provenance as
+  # attestations; a release also gets the SBOM as an SPDX file. Pushes to
+  # other branches and manual runs without release build the image without
+  # pushing it; a pull request stops at image-scan.
+  image:
+    needs: [check, image-scan, release]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.check.result == 'success' && needs.image-scan.result == 'success' && needs.release.result != 'failure' }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write # the SBOM file in the release
+      packages: write
+    env:
+      RELEASE: ${{ needs.release.outputs.version }}
+      PUBLISH: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'schedule' || needs.release.outputs.version != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.release.outputs.version != '' && format('v{0}', needs.release.outputs.version) || github.sha }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
+        id: meta
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}},value=v${{ env.RELEASE }},enable=${{ env.RELEASE != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=v${{ env.RELEASE }},enable=${{ env.RELEASE != '' }}
+            type=raw,value=latest,enable=${{ env.RELEASE != '' }}
+          flavor: latest=false
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        if: env.PUBLISH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ env.PUBLISH == 'true' }}
+          sbom: ${{ env.PUBLISH == 'true' }}
+          provenance: ${{ env.PUBLISH == 'true' && 'mode=max' || 'false' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ env.RELEASE || format('edge+{0}', github.sha) }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: ./.github/actions/setup-trivy
+        if: env.RELEASE != ''
+      - name: add the SBOM to the release
+        if: env.RELEASE != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ github.token }}
+        run: |
+          sbom="dist/awstats-$RELEASE-image.spdx.json"
+          mkdir -p dist
+          trivy image --format spdx-json --output "$sbom" "${IMAGE,,}:$RELEASE"
+          gh release upload "v$RELEASE" "$sbom" --clobber --repo "$GITHUB_REPOSITORY"
+
+  # The release stays a draft until the image SBOM is in it; then it is
+  # published. A failed job leaves the draft: re-run the failed jobs of this
+  # run (the upload replaces what is already there).
+  publish:
+    needs: [release, image]
+    if: needs.release.outputs.version != ''
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    env:
+      RELEASE: ${{ needs.release.outputs.version }}
+    steps:
+      - name: publish the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "v$RELEASE" --draft=false --latest --repo "$GITHUB_REPOSITORY"

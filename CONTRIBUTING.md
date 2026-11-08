@@ -63,6 +63,12 @@ by hand. The type of a commit decides the next version:
 | `feat!: ...` or a `BREAKING CHANGE:` footer | major release |
 | `docs:`, `chore:`, `ci:`, `test:`, `refactor:`, `build:` | no release |
 
+Every push builds and tests; a release is only made by hand from `main`
+(Actions -> build -> Run workflow with "release" ticked). It tags the
+version, writes CHANGELOG.md, publishes the GitHub release and the container
+image `ghcr.io/dennispohlmann/awstats` with the tags `<version>`,
+`<major>.<minor>` and `latest`. Every push to `main` publishes `edge`.
+
 Write the subject in plain English and say in the body why the change is
 needed and what a user notices.
 
