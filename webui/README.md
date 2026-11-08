@@ -43,8 +43,8 @@ docker run -d --name awstats -p 127.0.0.1:3000:3000 \
 # -> http://127.0.0.1:3000
 ```
 
-or, from the repository root, `docker compose up -d` (see
-`docker-compose.yml`; `AWSTATS_DATA=/path/to/data` picks another directory).
+or, from the repository root, `docker compose up -d web` (see
+`docker-compose.yml`, which also has the updater; `AWSTATS_DATA=/path/to/data` picks another directory).
 For the IP search, also mount the configs at `/etc/awstats` and the logs at
 the path their `LogFile` names. The container listens on all interfaces
 inside the container; the port mapping above keeps it on the host's
@@ -55,6 +55,17 @@ Images: `edge` follows `main`, releases are tagged `<version>`,
 `<major>.<minor>` and `latest`.
 
 ## Running it without a container
+
+Each release has the built interface as `awstats-web-<version>.tar.gz`
+(`server/` and `web/dist/`, no npm needed):
+
+```sh
+mkdir -p /opt/awstats-webui
+tar xzf awstats-web-<version>.tar.gz --strip-components=1 -C /opt/awstats-webui
+AWSTATS_DATA_DIR=/var/lib/awstats node /opt/awstats-webui/server/index.js
+```
+
+Or from the repository:
 
 ```sh
 cd webui

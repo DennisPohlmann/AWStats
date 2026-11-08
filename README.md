@@ -69,46 +69,68 @@ Details: [webui/README.md](webui/README.md).
 
 ## Requirements
 
-- **Log analysis:** Perl with the modules `Encode`, `JSON::XS` and `Try::Tiny`
-  (Debian/Ubuntu: `apt install libjson-xs-perl libtry-tiny-perl`), and read
-  access to the web server logs. For real-time statistics as a CGI, the web
-  server must be able to run Perl scripts.
-- **Go updater:** Go 1.24 or newer to build it (`cmd/awstats`).
-- **Web interface:** Docker, or Node.js 20 or newer.
+- **awstats.pl** (still included): Perl with the modules `Encode`, `JSON::XS`
+  and `Try::Tiny`. Not needed for the updater below.
+- **Updater:** the `awstats` binary from the release (Linux amd64/arm64), or
+  Go 1.24 or newer to build it, or the container image `awstats-updater`.
+  It needs read access to the web server logs.
+- **Web interface:** the container image `awstats`, or Node.js 20 or newer.
 
 ## Quick start
 
-1. Create a config for your site from `wwwroot/cgi-bin/awstats.model.conf`
-   (or with `tools/awstats_configure.pl`), for example
-   `/etc/awstats/awstats.example.com.conf`, and set `LogFile`, `LogFormat`,
-   `SiteDomain` and `DirData`.
-2. Update the statistics, for example hourly from cron:
+AWStats has two parts that share one data directory (`DirData`):
 
-   ```sh
-   perl wwwroot/cgi-bin/awstats.pl -config=example.com -update
-   ```
+- the **updater** `awstats` reads the logs and writes the data files, and
+- the **web interface** reads the data files and shows them.
 
-   Or with the Go updater (same configs, same data files, no Perl):
+Each part runs either as a container or directly on the host, in any
+combination. First create a config for each site from
+[`wwwroot/cgi-bin/awstats.model.conf`](wwwroot/cgi-bin/awstats.model.conf), for example
+`/etc/awstats/awstats.example.com.conf`, and set `LogFile`, `LogFormat`,
+`SiteDomain` and `DirData`. The updater supports `LogFormat` 1, 4 and
+personalized formats, not 2, 3 and 5, and no mail or ftp logs (`LogType` M
+and F), plugins or `ExtraSection`s.
 
-   ```sh
-   go build -o awstats ./cmd/awstats
-   ./awstats -config=example.com -update
-   ```
+### Both in containers
 
-   Not supported yet by the Go updater: `LogFormat` 2, 3 and 5, mail and ftp
-   logs (`LogType` M and F), plugins and `ExtraSection`s.
+```sh
+AWSTATS_LOGS=/var/log/nginx docker compose up -d     # -> http://127.0.0.1:3000
+```
 
-3. Start the web interface on the data directory (`DirData`):
+[`docker-compose.yml`](docker-compose.yml) starts the web interface and the
+updater, which updates every config in `/etc/awstats` once an hour. In the
+configs, `DirData` must be `/var/lib/awstats` and `LogFile` a path under
+`AWSTATS_LOGS`; the data directory must be writable for uid 1000.
+`docker compose run --rm updater -config=example.com` updates one site now.
 
-   ```sh
-   docker run -d --name awstats -p 127.0.0.1:3000:3000 \
-     -v /var/lib/awstats:/var/lib/awstats:ro \
-     ghcr.io/dennispohlmann/awstats:latest
-   ```
+### Both without containers
 
-   It listens on `http://127.0.0.1:3000`. Publish it only through a reverse
-   proxy with a login, because it shows IP addresses; see
-   [webui/README.md](webui/README.md) for nginx and HAProxy.
+The updater from a systemd timer (or cron), the web interface with Node.js:
+
+```sh
+tar xzf awstats-updater-<version>-linux-amd64.tar.gz
+sudo install awstats-updater-<version>-linux-amd64/awstats /usr/local/bin/
+sudo cp awstats-updater-<version>-linux-amd64/awstats-update.* /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now awstats-update.timer
+# or in crontab: 0 * * * * /usr/local/bin/awstats -all
+```
+
+`awstats -config=example.com` updates one site, `awstats -all` every config
+in `/etc/awstats` (or `-configdir`). Building it yourself: `go build -o awstats
+./cmd/awstats`. The web interface: unpack `awstats-web-<version>.tar.gz` to
+`/opt/awstats-webui` and start `node server/index.js` (systemd unit and
+settings in [webui/README.md](webui/README.md)).
+
+### Mixed
+
+- Updater on the host, web interface in a container: install the updater as
+  above, then `docker compose up -d web`.
+- Updater in a container, web interface on the host: `docker compose up -d
+  updater`, and the web interface as above.
+
+The web interface listens on `http://127.0.0.1:3000`. Publish it only through
+a reverse proxy with a login, because it shows IP addresses; see
+[webui/README.md](webui/README.md) for nginx and HAProxy.
 
 ## Documentation
 
