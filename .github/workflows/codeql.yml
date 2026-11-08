@@ -1,9 +1,8 @@
 name: codeql
 
-# CodeQL code scanning for the parts of the repository it can read: the
-# workflows (actions), the web interface (javascript-typescript) and the
-# graph applet (java, without a build). Perl, the bulk of AWStats, is not
-# supported by CodeQL. Findings go to the Security tab (code scanning).
+# CodeQL code scanning of the whole repository: the workflows (actions), the
+# web interface (javascript-typescript) and the updater (go, which CodeQL
+# builds itself). Findings go to the Security tab (code scanning).
 on:
   push:
     branches: ['**', '!dependabot/**']
@@ -28,13 +27,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [actions, javascript-typescript, java-kotlin]
+        include:
+          - language: actions
+            build-mode: ${{ matrix.build-mode }}
+          - language: javascript-typescript
+            build-mode: ${{ matrix.build-mode }}
+          - language: go
+            build-mode: autobuild
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        if: matrix.language == 'go'
+        with:
+          go-version-file: go.mod
+          cache: false
       - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           languages: ${{ matrix.language }}
-          build-mode: none
+          build-mode: ${{ matrix.build-mode }}
       - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           category: /language:${{ matrix.language }}
