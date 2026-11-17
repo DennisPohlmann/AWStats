@@ -46,7 +46,7 @@ USER awstats
 ENTRYPOINT ["awstats"]
 CMD ["-all", "-every=1h"]
 
-FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS build
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS build
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 WORKDIR /src
 COPY webui/package.json webui/package-lock.json ./
@@ -55,7 +55,7 @@ COPY webui/ ./
 RUN npm run build
 
 # web: the last stage, so a plain "docker build" gives the web interface.
-FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS web
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS web
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="awstats" \
       org.opencontainers.image.description="AWStats web interface for AWStats data files" \

@@ -23,9 +23,9 @@ pinned in `webui/package-lock.json`.
 
 | Package | Version | License | Project |
 |---------|---------|---------|---------|
-| react | 18.3.1 | MIT | https://github.com/facebook/react |
-| react-dom | 18.3.1 | MIT | https://github.com/facebook/react |
-| scheduler | 0.23.2 | MIT | https://github.com/facebook/react |
+| react | 19.3.1 | MIT | https://github.com/facebook/react |
+| react-dom | 19.3.1 | MIT | https://github.com/facebook/react |
+| scheduler | 0.28.0 | MIT | https://github.com/facebook/react |
 | echarts | 6.1.0 | Apache-2.0 | https://github.com/apache/echarts |
 | zrender | 6.1.0 | BSD-3-Clause | https://github.com/ecomfe/zrender |
 | tslib | 2.3.0 | 0BSD | https://github.com/microsoft/tslib |
