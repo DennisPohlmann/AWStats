@@ -11,7 +11,11 @@ const tables = {
 const obj = (h, val) => '{' + Object.keys(h).sort().map((k) => JSON.stringify(k) + ':' + val(h[k])).join(',') + '}';
 // Strips tags until nothing changes, so nested tags like "<<b>script>" cannot leave a tag behind.
 const stripTags = (s) => {
-  for (let prev; prev !== s; ) [prev, s] = [s, s.replace(/<[^>]*>/g, '')];
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(/<[^>]*>/g, '');
+  } while (s !== prev);
   return s;
 };
 const clean = (s) => JSON.stringify(stripTags(s).replace(/&nbsp;/g, ' '));
