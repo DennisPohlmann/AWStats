@@ -69,9 +69,11 @@ by hand. The type of a commit decides the next version:
 
 Every push builds and tests; a release is only made by hand from `main`
 (Actions -> build -> Run workflow with "release" ticked). It tags the
-version, writes CHANGELOG.md, publishes the GitHub release and the container
-image `ghcr.io/dennispohlmann/awstats` with the tags `<version>`,
-`<major>.<minor>` and `latest`. Every push to `main` publishes `edge`.
+version, writes CHANGELOG.md, publishes the GitHub release with the updater
+binaries and the built web interface, and the container images
+`ghcr.io/dennispohlmann/awstats` and `ghcr.io/dennispohlmann/awstats-updater`
+with the tags `<version>`, `<major>.<minor>` and `latest`. Every push to
+`main` publishes `edge`.
 
 Write the subject in plain English and say in the body why the change is
 needed and what a user notices.
