@@ -45,20 +45,20 @@ jobs:
             trivy image --skip-db-update --scanners vuln --ignore-unfixed \
               --severity HIGH,CRITICAL --format json --output "fixable-$f.json" "$REGISTRY/$ref"
           done
-      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+      - uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4
         with:
           sarif_file: trivy-awstats-latest.sarif
           category: image-latest
-      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+      - uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4
         with:
           sarif_file: trivy-awstats-edge.sarif
           category: image-edge
-      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+      - uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4
         if: hashFiles('trivy-awstats-updater-latest.sarif') != ''
         with:
           sarif_file: trivy-awstats-updater-latest.sarif
           category: updater-latest
-      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+      - uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4
         if: hashFiles('trivy-awstats-updater-edge.sarif') != ''
         with:
           sarif_file: trivy-awstats-updater-edge.sarif
