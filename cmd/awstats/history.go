@@ -113,7 +113,8 @@ func (u *updater) merge(h *month, df *dataFile) {
 		addIf(h.clusterK, r[0], fi(r, 3))
 	}
 	for _, r := range s["TIME"] {
-		if i := int(fi(r, 0)); i >= 0 && i < 24 {
+		if v := fi(r, 0); v >= 0 && v < 24 {
+			i := int(v)
 			h.timeP[i] += fi(r, 1)
 			h.timeH[i] += fi(r, 2)
 			h.timeK[i] += fi(r, 3)
@@ -124,7 +125,8 @@ func (u *updater) merge(h *month, df *dataFile) {
 	}
 	for _, r := range s["ORIGIN"] {
 		if strings.HasPrefix(r[0], "From") {
-			if i := int(pint(r[0][4:])); i >= 0 && i < 6 {
+			if v := pint(r[0][4:]); v >= 0 && v < 6 {
+				i := int(v)
 				h.fromP[i] += fi(r, 1)
 				h.fromH[i] += fi(r, 2)
 			}

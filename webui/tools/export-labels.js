@@ -9,5 +9,6 @@ const tables = {
 };
 // Written by hand with sorted keys: a JS object would put keys like "300" before "2xx".
 const obj = (h, val) => '{' + Object.keys(h).sort().map((k) => JSON.stringify(k) + ':' + val(h[k])).join(',') + '}';
-const clean = (s) => JSON.stringify(s.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' '));
+// The second replace drops a "<" or ">" left over by nested or unclosed tags.
+const clean = (s) => JSON.stringify(s.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').replace(/&nbsp;/g, ' '));
 process.stdout.write(obj(tables, (t) => obj(lib[t], clean)));

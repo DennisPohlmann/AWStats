@@ -386,7 +386,7 @@ func (u *updater) processLine(line string, lineOffset, baseLineNb int64) error {
 		u.corrupted++
 		return nil
 	}
-	yearRec, monthRec, hourRec := pint(dp[2]), pint(dp[1]), int(pint(dp[3]))
+	yearRec, monthRec, hourRec := pint(dp[2]), pint(dp[1]), pint(dp[3])
 	ymd := fmt.Sprintf("%s%02d%02d", dp[2], pint(dp[1]), pint(dp[0]))
 	timeRec := ((pint(ymd)*100+pint(dp[3]))*100+pint(dp[4]))*100 + pint(dp[5])
 	if timeRec < 10000000000000 || timeRec > u.tomorrow || hourRec < 0 || hourRec > 23 {
